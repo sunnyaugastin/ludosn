@@ -220,6 +220,12 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
     else if (r === 7 && c >= 9 && c <= 13) cellBg = HOME_PATH_BG.yellow;
     else if (c === 7 && r >= 9 && r <= 13) cellBg = HOME_PATH_BG.blue;
 
+    // Start entry cells — colored to match the player
+    if (r === 6 && c === 1) cellBg = '#ff9999';      // red entry — light red
+    else if (r === 1 && c === 8) cellBg = '#80e6a8';  // green entry — light green
+    else if (r === 8 && c === 13) cellBg = '#fff176';  // yellow entry — light yellow
+    else if (r === 13 && c === 6) cellBg = '#90caf9';  // blue entry — light blue
+
     // Star safe spots — mark with ☆
     const isStartCell = (r === 6 && c === 1) || (r === 1 && c === 8) || (r === 8 && c === 13) || (r === 13 && c === 6);
     const isStarCell = (r === 2 && c === 6) || (r === 6 && c === 12) || (r === 8 && c === 2) || (r === 12 && c === 8);

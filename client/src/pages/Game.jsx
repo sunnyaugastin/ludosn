@@ -38,6 +38,8 @@ export default function Game({ roomData, playerName }) {
   const [timerResetKey, setTimerResetKey] = useState(0);
   const prevTurnRef = useRef(null);
   const gameState = roomData?.gameState;
+  const [latestChatMsg, setLatestChatMsg] = useState(null);
+  const latestChatTimerRef = useRef(null);
 
   // Persist session for reconnect
   useEffect(() => {
@@ -96,6 +98,25 @@ export default function Game({ roomData, playerName }) {
       setTimeout(() => setConfetti(false), 5000);
     }
   }, [gameState?.gameOver]);
+
+  // Listen for chat messages → show latest as a preview banner for 4 seconds
+  useEffect(() => {
+    function onChatPreview(msg) {
+      // Only show messages from others
+      if (msg.senderId === socket.id || msg.isSystem) return;
+      if (latestChatTimerRef.current) clearTimeout(latestChatTimerRef.current);
+      setLatestChatMsg(msg);
+      latestChatTimerRef.current = setTimeout(() => {
+        setLatestChatMsg(null);
+        latestChatTimerRef.current = null;
+      }, 4000);
+    }
+    socket.on('chatMessage', onChatPreview);
+    return () => {
+      socket.off('chatMessage', onChatPreview);
+      if (latestChatTimerRef.current) clearTimeout(latestChatTimerRef.current);
+    };
+  }, []);
 
   // Sync dice value from server when not animating
   const [activeReactions, setActiveReactions] = useState({});
@@ -316,13 +337,6 @@ export default function Game({ roomData, playerName }) {
             {COLOR_LABELS[color]}
           </span>
         </div>
-
-        {/* Emoji React button next to profile (only for local user) */}
-        {isMe && (
-          <div className="ml-1">
-            <EmojiPicker onSelect={handleSendEmoji} />
-          </div>
-        )}
       </div>
     );
   }
@@ -390,6 +404,31 @@ export default function Game({ roomData, playerName }) {
               </div>
             </div>
           )}
+
+          {/* Mid-bar: React button + chat preview — sits between board and bottom controls */}
+          <div className="flex items-center gap-2 px-1 py-1.5 min-h-[38px]">
+            {/* React button */}
+            <EmojiPicker onSelect={handleSendEmoji} />
+
+            {/* Latest chat message preview */}
+            {latestChatMsg && (
+              <div 
+                className="flex-1 min-w-0 bg-white/70 border border-gray-150 rounded-xl px-3 py-1.5 shadow-sm overflow-hidden"
+                onClick={() => setLatestChatMsg(null)}
+              >
+                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">
+                  {latestChatMsg.senderName}:
+                </span>
+                <p className={`font-semibold text-gray-700 truncate leading-tight ${
+                  latestChatMsg.text.length > 40 ? 'text-[10px]' 
+                  : latestChatMsg.text.length > 20 ? 'text-xs' 
+                  : 'text-sm'
+                }`}>
+                  {latestChatMsg.text}
+                </p>
+              </div>
+            )}
+          </div>
 
           {/* Standard 4-Player Layout (Blue/Yellow bottom) */}
           {!is2Player && (
