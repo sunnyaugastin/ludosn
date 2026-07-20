@@ -81,9 +81,10 @@ export default function Lobby({ roomData, playerName, onLeave }) {
             {/* Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-black text-gray-900">
-                  LUDO<span className="text-violet-600">SN</span>
-                  <span className="ml-2 text-sm font-semibold text-gray-400">Lobby</span>
+                <h1 className="text-2xl font-black text-gray-900 flex items-center gap-1.5">
+                  <img src="/logo.png" alt="Ludo22" className="w-6 h-6 object-contain" />
+                  Ludo<span className="text-violet-600">22</span>
+                  <span className="ml-1 text-sm font-semibold text-gray-400">Lobby</span>
                 </h1>
                 <p className="text-xs text-gray-400 mt-0.5">
                   Host: <span className="font-semibold text-gray-600">{roomData.players.find(p => p.isHost)?.name}</span>

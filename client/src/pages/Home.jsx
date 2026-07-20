@@ -80,19 +80,11 @@ export default function Home({ onRoomJoined }) {
         <div className="p-8 space-y-6">
           {/* Brand Header */}
           <div className="text-center space-y-2">
-            <div className="flex justify-center items-end gap-1.5">
-              {/* Mini Ludo logo pawns */}
-              {['#FF2E2E','#00C853','#2196F3','#FFE013'].map((c, i) => (
-                <svg key={i} width="14" height="18" viewBox="0 0 28 34" fill="none">
-                  <ellipse cx="14" cy="30" rx="9" ry="3.2" fill={c} opacity="0.3" />
-                  <path d="M9 22 C8 18, 6 14, 8 10 C9 7, 11 5.5, 14 5.5 C17 5.5, 19 7, 20 10 C22 14, 20 18, 19 22 Z" fill={c} />
-                  <circle cx="14" cy="7" r="6" fill={c} />
-                  <ellipse cx="11.5" cy="4.5" rx="2.5" ry="2" fill="white" opacity="0.5" />
-                </svg>
-              ))}
+            <div className="flex justify-center items-center">
+              <img src="/logo.png" alt="Ludo22 Logo" className="w-16 h-16 object-contain" />
             </div>
             <h1 className="text-4xl font-black tracking-tight text-gray-900">
-              LUDO<span className="text-violet-600">SN</span>
+              Ludo<span className="text-violet-600">22</span>
             </h1>
             <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider">Ludo with friends</p>
           </div>

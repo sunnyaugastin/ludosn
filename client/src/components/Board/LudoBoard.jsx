@@ -390,7 +390,7 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
           className="relative border border-gray-250 transition-colors duration-500"
           style={{
             gridRow: '1 / 7', gridColumn: '1 / 7',
-            backgroundColor: isColorActive('red') ? QUADRANT_COLORS.red : '#f8fafc',
+            backgroundColor: QUADRANT_COLORS.red,
           }}
         >
           {isColorActive('red') && quadrantLabel('red', 'RED')}
@@ -401,7 +401,7 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
           className="relative border border-gray-250 transition-colors duration-500"
           style={{
             gridRow: '1 / 7', gridColumn: '10 / 16',
-            backgroundColor: isColorActive('green') ? QUADRANT_COLORS.green : '#f8fafc',
+            backgroundColor: QUADRANT_COLORS.green,
           }}
         >
           {isColorActive('green') && quadrantLabel('green', 'GREEN')}
@@ -412,7 +412,7 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
           className="relative border border-gray-250 transition-colors duration-500"
           style={{
             gridRow: '10 / 16', gridColumn: '1 / 7',
-            backgroundColor: isColorActive('blue') ? QUADRANT_COLORS.blue : '#f8fafc',
+            backgroundColor: QUADRANT_COLORS.blue,
           }}
         >
           {isColorActive('blue') && quadrantLabel('blue', 'BLUE')}
@@ -423,7 +423,7 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
           className="relative border border-gray-250 transition-colors duration-500"
           style={{
             gridRow: '10 / 16', gridColumn: '10 / 16',
-            backgroundColor: isColorActive('yellow') ? QUADRANT_COLORS.yellow : '#f8fafc',
+            backgroundColor: QUADRANT_COLORS.yellow,
           }}
         >
           {isColorActive('yellow') && quadrantLabel('yellow', 'YELLOW')}
@@ -434,10 +434,10 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
           style={{ gridRow: '7 / 10', gridColumn: '7 / 10', position: 'relative' }}
         >
           <svg viewBox="0 0 90 90" className="w-full h-full absolute inset-0">
-            <polygon points="0,0 45,45 0,90"   fill={isColorActive('red') ? QUADRANT_COLORS.red : '#f1f5f9'}    />
-            <polygon points="0,0 90,0 45,45"   fill={isColorActive('green') ? QUADRANT_COLORS.green : '#f1f5f9'}  />
-            <polygon points="90,0 90,90 45,45" fill={isColorActive('yellow') ? QUADRANT_COLORS.yellow : '#f1f5f9'} />
-            <polygon points="0,90 45,45 90,90" fill={isColorActive('blue') ? QUADRANT_COLORS.blue : '#f1f5f9'}   />
+            <polygon points="0,0 45,45 0,90"   fill={QUADRANT_COLORS.red}    />
+            <polygon points="0,0 90,0 45,45"   fill={QUADRANT_COLORS.green}  />
+            <polygon points="90,0 90,90 45,45" fill={QUADRANT_COLORS.yellow} />
+            <polygon points="0,90 45,45 90,90" fill={QUADRANT_COLORS.blue}   />
             {/* Star overlay */}
             <text 
               x="45" 

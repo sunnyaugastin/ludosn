@@ -272,8 +272,8 @@ export default function Game({ roomData, playerName }) {
     const isMe = player.id === socket.id;
 
     return (
-      <div className={`flex items-center gap-3 bg-white p-3 rounded-2xl border-2 transition-all duration-300 relative ${
-        isActive ? `${cl.activeBorder} shadow-md ${cl.activeShadow}` : 'border-gray-100'
+      <div className={`flex items-center gap-1.5 sm:gap-3 bg-white p-1.5 sm:p-2.5 rounded-2xl border-2 transition-all duration-300 relative ${
+        isActive ? `${cl.activeBorder} shadow-sm ${cl.activeShadow}` : 'border-gray-100'
       }`}>
         {/* Floating reaction above profile */}
         {activeReactions[player.id] && (
@@ -286,22 +286,22 @@ export default function Game({ roomData, playerName }) {
         )}
 
         <TurnTimerRing active={isActive} color={color} resetKey={timerResetKey}>
-          <PlayerAvatar name={player.name} color={color} isActive={isActive} size={44} />
+          <PlayerAvatar name={player.name} color={color} isActive={isActive} size={36} />
         </TurnTimerRing>
 
-        <div className="flex flex-col min-w-0">
-          <div className="flex items-center gap-1.5">
-            <span className="text-sm font-black text-gray-800 truncate max-w-[90px]">{player.name}</span>
-            {isMe && <span className="text-[9px] bg-violet-100 text-violet-600 px-1.5 py-0.5 rounded-full font-bold">You</span>}
+        <div className="flex flex-col min-w-0 flex-1">
+          <div className="flex items-center gap-1">
+            <span className="text-xs font-black text-gray-800 truncate max-w-[60px] sm:max-w-[90px]">{player.name}</span>
+            {isMe && <span className="text-[8px] bg-violet-100 text-violet-600 px-1 py-0.5 rounded-full font-bold">You</span>}
           </div>
-          <span className={`text-[10px] font-extrabold uppercase tracking-widest ${cl.text}`}>
+          <span className={`text-[8px] sm:text-[9px] font-extrabold uppercase tracking-wider ${cl.text}`}>
             {COLOR_LABELS[color]}
           </span>
         </div>
 
         {/* Emoji Reaction button directly next to profile (only for local user) */}
         {isMe && (
-          <div className="ml-auto">
+          <div className="ml-1">
             <EmojiPicker onSelect={handleSendEmoji} />
           </div>
         )}
@@ -344,8 +344,9 @@ export default function Game({ roomData, playerName }) {
               <PawnToken key={c} color={c} size={14} />
             ))}
           </div>
-          <div>
-            <h1 className="text-lg font-black text-gray-900">LUDO<span className="text-violet-600">SN</span></h1>
+          <div className="flex items-center gap-1.5">
+            <img src="/logo.png" alt="Ludo22 Logo" className="w-6 h-6 object-contain" />
+            <h1 className="text-lg font-black text-gray-900">Ludo<span className="text-violet-600">22</span></h1>
             <p className="text-[10px] text-gray-400 font-mono">Room: {roomData.code}</p>
           </div>
         </div>
@@ -390,15 +391,15 @@ export default function Game({ roomData, playerName }) {
 
           {/* Dedicated 2-Player Controls Layout */}
           {is2Player && (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center bg-white/50 border border-gray-150 p-4 rounded-3xl shadow-sm">
+            <div className="flex flex-row items-center justify-between gap-1.5 sm:gap-4 bg-white/50 border border-gray-150 p-2 sm:p-4 rounded-3xl shadow-sm overflow-visible">
               {/* Local Player Profile (Left) */}
-              <div className="sm:col-span-1">
+              <div className="flex-1 min-w-0">
                 <TwoPlayerProfile player={localPlayerInfo} />
               </div>
 
               {/* Shared Central Dice */}
-              <div className="sm:col-span-1 flex flex-col items-center justify-center py-2 border-y sm:border-y-0 sm:border-x border-gray-150 gap-1">
-                <span className="text-[9px] font-extrabold text-gray-400 uppercase tracking-widest">
+              <div className="flex flex-col items-center justify-center px-1.5 sm:px-4 border-x border-gray-150 gap-0.5 sm:gap-1 flex-shrink-0">
+                <span className="text-[7px] sm:text-[9px] font-extrabold text-gray-400 uppercase tracking-widest text-center">
                   {isMyTurn ? 'Your Turn' : `${activePlayer?.name}'s Turn`}
                 </span>
                 <Dice
@@ -410,7 +411,7 @@ export default function Game({ roomData, playerName }) {
               </div>
 
               {/* Opponent Profile (Right) */}
-              <div className="sm:col-span-1">
+              <div className="flex-1 min-w-0">
                 <TwoPlayerProfile player={gameState.players.find(p => p.id !== socket.id)} alignRight />
               </div>
             </div>

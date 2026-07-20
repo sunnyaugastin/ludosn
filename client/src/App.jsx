@@ -13,6 +13,9 @@ const SESSION_KEYS = {
 };
 
 export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(localStorage.getItem('auth_ludo22') === 'true');
+  const [passwordInput, setPasswordInput] = useState('');
+  const [authError, setAuthError] = useState('');
   const [view, setView] = useState('home');
   const [playerName, setPlayerName] = useState(localStorage.getItem('playerName') || '');
   const [roomData, setRoomData] = useState(null);
@@ -20,6 +23,7 @@ export default function App() {
 
   // ── Attempt reconnect on mount ────────────────────────────────────────────
   useEffect(() => {
+    if (!isAuthenticated) return;
     const savedCode = sessionStorage.getItem(SESSION_KEYS.roomCode);
     const savedName = sessionStorage.getItem(SESSION_KEYS.playerName);
     const savedView = sessionStorage.getItem(SESSION_KEYS.view);
@@ -50,7 +54,7 @@ export default function App() {
         socket.once('connect', attemptReconnect);
       }
     }
-  }, []);
+  }, [isAuthenticated]);
 
   // ── Core socket event listeners ───────────────────────────────────────────
   useEffect(() => {
@@ -140,12 +144,55 @@ export default function App() {
     setView('home');
   };
 
+  const handlePasswordSubmit = (e) => {
+    e.preventDefault();
+    if (passwordInput === 'Ludosn26') {
+      localStorage.setItem('auth_ludo22', 'true');
+      setIsAuthenticated(true);
+      setAuthError('');
+    } else {
+      setAuthError('Incorrect password! Try again.');
+    }
+  };
+
   // ── Reconnecting spinner ──────────────────────────────────────────────────
   if (isReconnecting) {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-slate-100">
         <div className="h-10 w-10 border-4 border-violet-600 border-t-transparent rounded-full animate-spin mb-4" />
         <p className="text-slate-400 font-medium text-sm">Reconnecting to your game...</p>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-3xl border border-gray-150 p-8 max-w-sm w-full shadow-2xl space-y-6 text-center">
+          <div className="flex justify-center">
+            <img src="/logo.png" alt="Ludo22 Logo" className="w-16 h-16 object-contain" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-black text-gray-900">Ludo22 Lock</h2>
+            <p className="text-gray-400 text-xs mt-1">This is a private space. Enter password to access.</p>
+          </div>
+          <form onSubmit={handlePasswordSubmit} className="space-y-4">
+            <input
+              type="password"
+              placeholder="Enter Password"
+              value={passwordInput}
+              onChange={(e) => setPasswordInput(e.target.value)}
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-center focus:border-violet-500 focus:ring-2 focus:ring-violet-100 text-gray-800 font-bold outline-none"
+            />
+            {authError && <p className="text-xs text-red-500 font-bold">{authError}</p>}
+            <button
+              type="submit"
+              className="w-full py-3 bg-violet-600 hover:bg-violet-500 text-white rounded-2xl font-bold transition shadow-md shadow-violet-100"
+            >
+              Verify & Enter
+            </button>
+          </form>
+        </div>
       </div>
     );
   }
