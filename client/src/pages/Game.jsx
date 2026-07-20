@@ -396,38 +396,35 @@ export default function Game({ roomData, playerName }) {
             />
           </div>
 
-          {/* Turn alert badge */}
-          {showYourTurnFlash && (
-            <div className="flex justify-center">
-              <div className="bg-violet-600/90 backdrop-blur-sm text-white px-5 py-2 rounded-2xl text-xs font-black shadow-lg animate-bounce uppercase tracking-widest">
-                ⭐ Your Turn!
-              </div>
-            </div>
-          )}
-
-          {/* Mid-bar: React button + chat preview — sits between board and bottom controls */}
-          <div className="flex items-center gap-2 px-1 py-1.5 min-h-[38px]">
-            {/* React button */}
+          {/* Fixed-height Mid Section (Fixed 44px spacing between board and bottom controls) */}
+          <div className="h-11 flex items-center gap-2 px-1 my-1 select-none">
+            {/* React button (always fixed on the left) */}
             <EmojiPicker onSelect={handleSendEmoji} />
 
-            {/* Latest chat message preview */}
-            {latestChatMsg && (
-              <div 
-                className="flex-1 min-w-0 bg-white/70 border border-gray-150 rounded-xl px-3 py-1.5 shadow-sm overflow-hidden"
-                onClick={() => setLatestChatMsg(null)}
-              >
-                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">
-                  {latestChatMsg.senderName}:
-                </span>
-                <p className={`font-semibold text-gray-700 truncate leading-tight ${
-                  latestChatMsg.text.length > 40 ? 'text-[10px]' 
-                  : latestChatMsg.text.length > 20 ? 'text-xs' 
-                  : 'text-sm'
-                }`}>
-                  {latestChatMsg.text}
-                </p>
-              </div>
-            )}
+            {/* Dynamic Content Slot (Your Turn alert OR Chat preview — zero layout shifting) */}
+            <div className="flex-1 h-full flex items-center justify-center min-w-0">
+              {showYourTurnFlash ? (
+                <div className="bg-violet-600/90 backdrop-blur-sm text-white px-4 py-1.5 rounded-xl text-xs font-black shadow-md animate-bounce uppercase tracking-widest">
+                  ⭐ Your Turn!
+                </div>
+              ) : latestChatMsg ? (
+                <div 
+                  className="w-full h-full bg-white/80 border border-gray-150 rounded-xl px-3 flex flex-col justify-center shadow-sm cursor-pointer overflow-hidden"
+                  onClick={() => setLatestChatMsg(null)}
+                >
+                  <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider leading-none">
+                    {latestChatMsg.senderName}
+                  </span>
+                  <p className={`font-semibold text-gray-700 truncate leading-tight mt-0.5 ${
+                    latestChatMsg.text.length > 40 ? 'text-[10px]' 
+                    : latestChatMsg.text.length > 20 ? 'text-xs' 
+                    : 'text-xs'
+                  }`}>
+                    {latestChatMsg.text}
+                  </p>
+                </div>
+              ) : null}
+            </div>
           </div>
 
           {/* Standard 4-Player Layout (Blue/Yellow bottom) */}
