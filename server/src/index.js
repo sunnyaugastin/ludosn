@@ -126,7 +126,7 @@ function resetTurnTimer(roomCode, room) {
       io.to(roomCode).emit('roomUpdated', room);
       resetTurnTimer(roomCode, room);
     }
-  }, 20000); // 20 seconds AFK timeout
+  }, 30000); // 30 seconds AFK timeout
 
   turnTimers.set(roomCode, timeout);
 }

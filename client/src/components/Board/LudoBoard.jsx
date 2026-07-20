@@ -181,12 +181,12 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
   const isMyTurn = activePlayer?.id === socket.id;
   const myColor = gameState.players.find(p => p.id === socket.id)?.color || '';
 
-  // Calculate board rotation to keep local player's home base at the bottom
+  // Calculate board rotation so local player's home base is always at bottom-left
   const ROTATION_MAP = {
     blue: 0,
-    red: 90,
+    red: 270,
     green: 180,
-    yellow: 270,
+    yellow: 90,
   };
   const boardRotation = ROTATION_MAP[myColor] || 0;
 
