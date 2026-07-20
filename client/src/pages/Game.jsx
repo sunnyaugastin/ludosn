@@ -279,7 +279,7 @@ export default function Game({ roomData, playerName }) {
         {activeReactions[player.id] && (
           <div
             key={activeReactions[player.id].key}
-            className="absolute -top-10 left-8 z-30 text-3xl animate-float-emoji pointer-events-none select-none"
+            className="absolute -top-12 left-8 z-30 text-3xl animate-float-emoji pointer-events-none select-none"
           >
             {activeReactions[player.id].emoji}
           </div>
@@ -298,13 +298,6 @@ export default function Game({ roomData, playerName }) {
             {COLOR_LABELS[color]}
           </span>
         </div>
-
-        {/* Emoji Reaction button directly next to profile (only for local user) */}
-        {isMe && (
-          <div className="ml-1">
-            <EmojiPicker onSelect={handleSendEmoji} />
-          </div>
-        )}
       </div>
     );
   }
@@ -314,41 +307,24 @@ export default function Game({ roomData, playerName }) {
       <style>{`
         @keyframes emoji-float {
           0% { transform: translateY(10px) scale(0.5); opacity: 0; }
-          15% { transform: translateY(-10px) scale(1.2); opacity: 1; }
-          85% { transform: translateY(-30px) scale(1); opacity: 1; }
-          100% { transform: translateY(-45px) scale(0.8); opacity: 0; }
+          15% { transform: translateY(-15px) scale(1.2); opacity: 1; }
+          85% { transform: translateY(-40px) scale(1); opacity: 1; }
+          100% { transform: translateY(-60px) scale(0.8); opacity: 0; }
         }
         .animate-float-emoji {
-          animation: emoji-float 2.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+          animation: emoji-float 3s cubic-bezier(0.25, 1, 0.5, 1) forwards;
         }
       `}</style>
 
       {/* Confetti */}
       <ConfettiOverlay active={confetti} />
 
-      {/* Your turn full-screen flash */}
-      {showYourTurnFlash && (
-        <div className="fixed inset-0 z-50 pointer-events-none flex items-center justify-center">
-          <div className="bg-violet-600/90 backdrop-blur-sm text-white px-8 py-4 rounded-3xl text-xl font-black shadow-2xl animate-bounce">
-            ⭐ Your Turn!
-          </div>
-        </div>
-      )}
-
       {/* Header */}
       <header className="w-full max-w-5xl mx-auto mt-4 mb-2 px-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          {/* Mini pawn row */}
-          <div className="flex gap-0.5">
-            {['red','green','blue','yellow'].map(c => (
-              <PawnToken key={c} color={c} size={14} />
-            ))}
-          </div>
-          <div className="flex items-center gap-1.5">
-            <img src="/logo.png" alt="Ludo22 Logo" className="w-6 h-6 object-contain" />
-            <h1 className="text-lg font-black text-gray-900">Ludo<span className="text-violet-600">22</span></h1>
-            <p className="text-[10px] text-gray-400 font-mono">Room: {roomData.code}</p>
-          </div>
+          <img src="/logo.png" alt="Ludo22 Logo" className="w-8 h-8 object-contain" />
+          <h1 className="text-xl font-black text-gray-900">Ludo<span className="text-violet-600">22</span></h1>
+          <p className="text-[10px] text-gray-400 font-mono">Room: {roomData.code}</p>
         </div>
         <button
           onClick={handleQuit}
@@ -362,7 +338,7 @@ export default function Game({ roomData, playerName }) {
       <main className="w-full max-w-5xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1 items-start pb-6">
 
         {/* Board area */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className="lg:col-span-2 space-y-5">
 
           {/* Standard 4-Player Layout (Red/Green top) */}
           {!is2Player && (
@@ -379,6 +355,31 @@ export default function Game({ roomData, playerName }) {
               validTokens={validTokens}
               onTokenClick={handleTokenClick}
             />
+          </div>
+
+          {/* Spacer & In-line Emojis & Turn Notification */}
+          <div className="space-y-4">
+            {/* Emojis horizontal row */}
+            <div className="flex flex-wrap justify-center gap-2 px-2 py-1 bg-white/40 border border-gray-150 rounded-2xl max-w-md mx-auto">
+              {['😀', '😂', '😍', '😭', '😎', '👍', '👏', '❤️', '🔥', '🎉', '😡', '😮'].map(e => (
+                <button
+                  key={e}
+                  onClick={() => handleSendEmoji(e)}
+                  className="text-2xl hover:scale-125 transition duration-100 active:scale-90 p-1 cursor-pointer"
+                >
+                  {e}
+                </button>
+              ))}
+            </div>
+
+            {/* Turn alert badge */}
+            {showYourTurnFlash && (
+              <div className="flex justify-center">
+                <div className="bg-violet-600/90 backdrop-blur-sm text-white px-5 py-2 rounded-2xl text-xs font-black shadow-lg animate-bounce uppercase tracking-widest">
+                  ⭐ Your Turn!
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Standard 4-Player Layout (Blue/Yellow bottom) */}
@@ -407,6 +408,7 @@ export default function Game({ roomData, playerName }) {
                   isRolling={localIsRolling}
                   onClick={handleRollClick}
                   disabled={!isMyTurn || gameState.hasRolled}
+                  isGray={!isMyTurn}
                 />
               </div>
 

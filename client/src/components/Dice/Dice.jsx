@@ -9,7 +9,7 @@ const DOT_GRIDS = {
   6: [true,false,true,    true,false,true,    true,false,true],
 };
 
-export default function Dice({ value = 1, isRolling = false, onClick, disabled = false }) {
+export default function Dice({ value = 1, isRolling = false, onClick, disabled = false, isGray = false }) {
   const dots = DOT_GRIDS[value] || DOT_GRIDS[1];
 
   return (
@@ -52,7 +52,7 @@ export default function Dice({ value = 1, isRolling = false, onClick, disabled =
           transition-all duration-150
           ${isRolling
             ? 'dice-rolling border-violet-450 bg-gradient-to-br from-white via-gray-50 to-gray-150 shadow-md'
-            : disabled
+            : isGray
               ? 'border-gray-200 bg-gradient-to-br from-gray-100 to-gray-150 opacity-65 cursor-not-allowed'
               : 'border-gray-300 bg-gradient-to-br from-white via-gray-50 to-gray-150 hover:border-violet-500 hover:scale-105 hover:shadow-lg hover:shadow-violet-100 cursor-pointer active:scale-95'
           }

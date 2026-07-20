@@ -14,6 +14,7 @@ const SESSION_KEYS = {
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(localStorage.getItem('auth_ludo22') === 'true');
+  const [isVerifying, setIsVerifying] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
   const [authError, setAuthError] = useState('');
   const [view, setView] = useState('home');
@@ -147,9 +148,13 @@ export default function App() {
   const handlePasswordSubmit = (e) => {
     e.preventDefault();
     if (passwordInput === 'Ludosn26') {
-      localStorage.setItem('auth_ludo22', 'true');
-      setIsAuthenticated(true);
       setAuthError('');
+      setIsVerifying(true);
+      setTimeout(() => {
+        localStorage.setItem('auth_ludo22', 'true');
+        setIsVerifying(false);
+        setIsAuthenticated(true);
+      }, 1200);
     } else {
       setAuthError('Incorrect password! Try again.');
     }
@@ -161,6 +166,19 @@ export default function App() {
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-slate-100">
         <div className="h-10 w-10 border-4 border-violet-600 border-t-transparent rounded-full animate-spin mb-4" />
         <p className="text-slate-400 font-medium text-sm">Reconnecting to your game...</p>
+      </div>
+    );
+  }
+
+  // White Loading Transition Screen
+  if (isVerifying) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center space-y-6">
+        <img src="/logo.png" alt="Ludo22 Logo" className="w-20 h-20 object-contain animate-pulse" />
+        <div className="flex flex-col items-center space-y-2">
+          <div className="h-8 w-8 border-4 border-violet-600 border-t-transparent rounded-full animate-spin" />
+          <p className="text-gray-500 font-extrabold text-xs uppercase tracking-widest">Loading Ludo22...</p>
+        </div>
       </div>
     );
   }
