@@ -181,6 +181,19 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
   const isMyTurn = activePlayer?.id === socket.id;
   const myColor = gameState.players.find(p => p.id === socket.id)?.color || '';
 
+  // Calculate board rotation to keep local player's home base at the bottom
+  const ROTATION_MAP = {
+    blue: 0,
+    red: 90,
+    green: 180,
+    yellow: 270,
+  };
+  const boardRotation = ROTATION_MAP[myColor] || 0;
+
+  // Track active player colors (useful for 2-player neutral boards)
+  const activeColors = gameState.players.map(p => p.color);
+  const isColorActive = (color) => activeColors.includes(color);
+
   /* Build cell → tokens map */
   const cellMap = {};
   Object.keys(positions).forEach(color => {
@@ -201,11 +214,16 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
     let cellBg = '#ffffff';
     let cellContent = null;
 
-    // Home path cells
-    if (r === 7 && c >= 1 && c <= 5) cellBg = HOME_PATH_BG.red;
-    else if (c === 7 && r >= 1 && r <= 5) cellBg = HOME_PATH_BG.green;
-    else if (r === 7 && c >= 9 && c <= 13) cellBg = HOME_PATH_BG.yellow;
-    else if (c === 7 && r >= 9 && r <= 13) cellBg = HOME_PATH_BG.blue;
+    // Home path cells - only color if that player color is active in the game
+    if (r === 7 && c >= 1 && c <= 5) {
+      cellBg = isColorActive('red') ? HOME_PATH_BG.red : '#ffffff';
+    } else if (c === 7 && r >= 1 && r <= 5) {
+      cellBg = isColorActive('green') ? HOME_PATH_BG.green : '#ffffff';
+    } else if (r === 7 && c >= 9 && c <= 13) {
+      cellBg = isColorActive('yellow') ? HOME_PATH_BG.yellow : '#ffffff';
+    } else if (c === 7 && r >= 9 && r <= 13) {
+      cellBg = isColorActive('blue') ? HOME_PATH_BG.blue : '#ffffff';
+    }
 
     // Star safe spots — mark with ★
     const isStartCell = (r === 6 && c === 1) || (r === 1 && c === 8) || (r === 8 && c === 13) || (r === 13 && c === 6);
@@ -213,7 +231,12 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
 
     if ((isStarCell || isStartCell) && tokensHere.length === 0) {
       cellContent = (
-        <span className="text-gray-400 text-sm leading-none select-none">★</span>
+        <span 
+          className="text-gray-400 text-sm leading-none select-none inline-block"
+          style={{ transform: `rotate(-${boardRotation}deg)` }}
+        >
+          ★
+        </span>
       );
     }
 
@@ -221,11 +244,15 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
     const arrows = { '6,1': '→', '1,8': '↓', '8,13': '←', '13,6': '↑' };
     if (arrows[`${r},${c}`] && tokensHere.length === 0) {
       const arrowColors = { '6,1':'text-red-500', '1,8':'text-green-600', '8,13':'text-yellow-600', '13,6':'text-blue-600' };
-      cellContent = (
-        <span className={`font-black text-base leading-none select-none ${arrowColors[`${r},${c}`]}`}>
-          {arrows[`${r},${c}`]}
-        </span>
-      );
+      // Hide arrows for inactive player entry squares in 2-player
+      const arrowOwner = { '6,1': 'red', '1,8': 'green', '8,13': 'yellow', '13,6': 'blue' };
+      if (isColorActive(arrowOwner[`${r},${c}`])) {
+        cellContent = (
+          <span className={`font-black text-base leading-none select-none ${arrowColors[`${r},${c}`]}`}>
+            {arrows[`${r},${c}`]}
+          </span>
+        );
+      }
     }
 
     // Render tokens in this cell
@@ -247,8 +274,13 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
               <div
                 key={`${t.color}-${t.tokenId}`}
                 onClick={() => isClickable && onTokenClick(t.tokenId)}
-                className={`absolute transition-all duration-500 ease-out ${isClickable ? 'cursor-pointer z-20' : 'z-10'}`}
-                style={{ transform: `translate(${off.x}px, ${off.y}px)` }}
+                className={`absolute transition-all duration-500 ease-out flex items-center justify-center ${isClickable ? 'cursor-pointer z-20' : 'z-10'}`}
+                style={{ 
+                  transform: `translate(${off.x}px, ${off.y}px) rotate(-${boardRotation}deg)`,
+                  // Use absolute centering inside the cell wrapper
+                  width: '28px',
+                  height: '36px',
+                }}
               >
                 <PawnToken
                   color={t.color}
@@ -301,7 +333,7 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
       return (
         <div
           key={`base-${color}-${slotIdx}`}
-          className="rounded-full border-2 border-white/60 flex items-center justify-center bg-white/15 transition-all"
+          className="rounded-full border border-gray-200 flex items-center justify-center bg-gray-50/50 hover:bg-gray-50 transition-all"
           style={{ width: '36%', height: '36%' }}
         >
           {tokenHere !== null && (() => {
@@ -309,7 +341,8 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
             return (
               <div
                 onClick={() => isClickable && onTokenClick(tokenHere)}
-                className={isClickable ? 'cursor-pointer' : ''}
+                className={`flex items-center justify-center ${isClickable ? 'cursor-pointer' : ''}`}
+                style={{ transform: `rotate(-${boardRotation}deg)` }}
               >
                 <PawnToken color={color} size={22} isClickable={isClickable} />
               </div>
@@ -326,7 +359,7 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
       style={{ zIndex: 0 }}
     >
       <div
-        className="w-[56%] h-[56%] rounded-full bg-white/90 flex flex-wrap gap-[8%] items-center justify-center p-[6%] shadow-inner"
+        className="w-[56%] h-[56%] rounded-full bg-white flex flex-wrap gap-[8%] items-center justify-center p-[6%] shadow-md border border-gray-100"
         style={{ zIndex: 1, pointerEvents: 'auto' }}
       >
         {renderBaseSlots(color)}
@@ -336,8 +369,12 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
 
   return (
     <div
-      className="w-full max-w-[520px] aspect-square bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100 relative select-none"
-      style={{ boxShadow: '0 8px 48px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08)' }}
+      className="w-full max-w-[520px] aspect-square bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-150 relative select-none"
+      style={{ 
+        boxShadow: '0 8px 48px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08)',
+        transform: `rotate(${boardRotation}deg)`,
+        transition: 'transform 0.8s cubic-bezier(0.25, 1, 0.5, 1)'
+      }}
     >
       {/* 15×15 CSS Grid */}
       <div
@@ -350,46 +387,46 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
       >
         {/* ── RED quadrant (top-left, rows 1-6, cols 1-6) ── */}
         <div
-          className="relative border border-gray-300"
+          className="relative border border-gray-250 transition-colors duration-500"
           style={{
             gridRow: '1 / 7', gridColumn: '1 / 7',
-            backgroundColor: QUADRANT_COLORS.red,
+            backgroundColor: isColorActive('red') ? QUADRANT_COLORS.red : '#f8fafc',
           }}
         >
-          {quadrantLabel('red', 'RED')}
+          {isColorActive('red') && quadrantLabel('red', 'RED')}
         </div>
 
         {/* ── GREEN quadrant (top-right, rows 1-6, cols 10-15) ── */}
         <div
-          className="relative border border-gray-300"
+          className="relative border border-gray-250 transition-colors duration-500"
           style={{
             gridRow: '1 / 7', gridColumn: '10 / 16',
-            backgroundColor: QUADRANT_COLORS.green,
+            backgroundColor: isColorActive('green') ? QUADRANT_COLORS.green : '#f8fafc',
           }}
         >
-          {quadrantLabel('green', 'GREEN')}
+          {isColorActive('green') && quadrantLabel('green', 'GREEN')}
         </div>
 
         {/* ── BLUE quadrant (bottom-left, rows 10-15, cols 1-6) ── */}
         <div
-          className="relative border border-gray-300"
+          className="relative border border-gray-250 transition-colors duration-500"
           style={{
             gridRow: '10 / 16', gridColumn: '1 / 7',
-            backgroundColor: QUADRANT_COLORS.blue,
+            backgroundColor: isColorActive('blue') ? QUADRANT_COLORS.blue : '#f8fafc',
           }}
         >
-          {quadrantLabel('blue', 'BLUE')}
+          {isColorActive('blue') && quadrantLabel('blue', 'BLUE')}
         </div>
 
         {/* ── YELLOW quadrant (bottom-right, rows 10-15, cols 10-15) ── */}
         <div
-          className="relative border border-gray-300"
+          className="relative border border-gray-250 transition-colors duration-500"
           style={{
             gridRow: '10 / 16', gridColumn: '10 / 16',
-            backgroundColor: QUADRANT_COLORS.yellow,
+            backgroundColor: isColorActive('yellow') ? QUADRANT_COLORS.yellow : '#f8fafc',
           }}
         >
-          {quadrantLabel('yellow', 'YELLOW')}
+          {isColorActive('yellow') && quadrantLabel('yellow', 'YELLOW')}
         </div>
 
         {/* ── CENTER star (rows 7-9, cols 7-9) ── */}
@@ -397,12 +434,23 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
           style={{ gridRow: '7 / 10', gridColumn: '7 / 10', position: 'relative' }}
         >
           <svg viewBox="0 0 90 90" className="w-full h-full absolute inset-0">
-            <polygon points="0,0 45,45 0,90"   fill={QUADRANT_COLORS.red}    />
-            <polygon points="0,0 90,0 45,45"   fill={QUADRANT_COLORS.green}  />
-            <polygon points="90,0 90,90 45,45" fill={QUADRANT_COLORS.yellow} />
-            <polygon points="0,90 45,45 90,90" fill={QUADRANT_COLORS.blue}   />
+            <polygon points="0,0 45,45 0,90"   fill={isColorActive('red') ? QUADRANT_COLORS.red : '#f1f5f9'}    />
+            <polygon points="0,0 90,0 45,45"   fill={isColorActive('green') ? QUADRANT_COLORS.green : '#f1f5f9'}  />
+            <polygon points="90,0 90,90 45,45" fill={isColorActive('yellow') ? QUADRANT_COLORS.yellow : '#f1f5f9'} />
+            <polygon points="0,90 45,45 90,90" fill={isColorActive('blue') ? QUADRANT_COLORS.blue : '#f1f5f9'}   />
             {/* Star overlay */}
-            <text x="45" y="54" textAnchor="middle" fontSize="26" fill="white" fontWeight="bold" opacity="0.85">★</text>
+            <text 
+              x="45" 
+              y="54" 
+              textAnchor="middle" 
+              fontSize="26" 
+              fill="#94a3b8" 
+              fontWeight="bold" 
+              opacity="0.85"
+              style={{ transform: `rotate(-${boardRotation}deg)`, transformOrigin: '45px 45px' }}
+            >
+              ★
+            </text>
           </svg>
         </div>
 

@@ -98,11 +98,25 @@ export default function Game({ roomData, playerName }) {
   }, [gameState?.gameOver]);
 
   // Sync dice value from server when not animating
+  const [activeReactions, setActiveReactions] = useState({});
+
   useEffect(() => {
     if (gameState?.diceValue && !localIsRolling) {
       setLocalDiceValue(gameState.diceValue);
     }
   }, [gameState?.diceValue, localIsRolling]);
+
+  // Listen for real-time emoji reactions
+  useEffect(() => {
+    function onEmojiReceived({ senderId, emoji }) {
+      setActiveReactions(prev => ({
+        ...prev,
+        [senderId]: { emoji, key: Math.random() }
+      }));
+    }
+    socket.on('emojiReceived', onEmojiReceived);
+    return () => socket.off('emojiReceived', onEmojiReceived);
+  }, []);
 
   if (!roomData || !gameState) return null;
 
@@ -140,6 +154,10 @@ export default function Game({ roomData, playerName }) {
     });
   };
 
+  const handleSendEmoji = (emoji) => {
+    socket.emit('sendEmoji', { emoji });
+  };
+
   const handleQuit = () => {
     if (window.confirm('Quit the match and return to home?')) {
       sessionStorage.removeItem(SESSION_KEYS.roomCode);
@@ -151,9 +169,10 @@ export default function Game({ roomData, playerName }) {
   };
 
   const winnerPlayer = gameState.players.find(p => p.id === gameState.winner);
+  const is2Player = gameState.players.length === 2;
 
-  // Render a player panel (avatar + dice card)
-  function PlayerPanel({ color, turnIndex }) {
+  // Render a player panel (avatar + dice card) for standard 4-player mode
+  function PlayerPanel({ color }) {
     const player = gameState.players.find(p => p.color === color);
     const activePlayer = gameState.players[gameState.turn];
     const isActive = activePlayer && activePlayer.color === color;
@@ -162,9 +181,19 @@ export default function Game({ roomData, playerName }) {
     const showDice = isActive;
 
     return (
-      <div className={`flex items-center gap-2 px-2.5 py-2 rounded-2xl border-2 transition-all duration-300 bg-white ${
+      <div className={`flex items-center gap-2 px-2.5 py-2 rounded-2xl border-2 transition-all duration-300 bg-white relative ${
         isActive ? `${cl.activeBorder} shadow-md ${cl.activeShadow}` : `${cl.border}`
       }`}>
+        {/* Floating reaction above profile */}
+        {player && activeReactions[player.id] && (
+          <div
+            key={activeReactions[player.id].key}
+            className="absolute -top-8 left-6 z-30 text-2xl animate-float-emoji pointer-events-none select-none"
+          >
+            {activeReactions[player.id].emoji}
+          </div>
+        )}
+
         {/* Avatar + timer ring */}
         <TurnTimerRing active={isActive} color={color} resetKey={timerResetKey}>
           <PlayerAvatar name={player?.name || '?'} color={color} isActive={isActive} size={40} />
@@ -200,8 +229,100 @@ export default function Game({ roomData, playerName }) {
     );
   }
 
+  // Floating Emoji Picker Button Component
+  function EmojiPicker({ onSelect }) {
+    const [open, setOpen] = useState(false);
+    const emojis = ['😀', '😂', '😍', '😭', '😎', '👍', '👏', '❤️', '🔥', '🎉', '😡', '😮'];
+
+    return (
+      <div className="relative">
+        <button
+          onClick={() => setOpen(!open)}
+          className="p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg text-xs font-bold transition flex items-center gap-1 shadow-sm"
+        >
+          <span>😊</span>
+          <span className="text-[9px] uppercase tracking-wider">React</span>
+        </button>
+        {open && (
+          <div className="absolute bottom-8 left-0 z-40 bg-white border border-gray-150 rounded-2xl p-2.5 shadow-xl grid grid-cols-4 gap-1.5 w-44">
+            {emojis.map(e => (
+              <button
+                key={e}
+                onClick={() => {
+                  onSelect(e);
+                  setOpen(false);
+                }}
+                className="hover:scale-125 transition text-lg"
+              >
+                {e}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // 2-Player Profile Component
+  function TwoPlayerProfile({ player, alignRight = false }) {
+    if (!player) return null;
+    const color = player.color;
+    const isActive = activePlayer && activePlayer.id === player.id;
+    const cl = PANEL_COLORS[color] || PANEL_COLORS.red;
+    const isMe = player.id === socket.id;
+
+    return (
+      <div className={`flex items-center gap-3 bg-white p-3 rounded-2xl border-2 transition-all duration-300 relative ${
+        isActive ? `${cl.activeBorder} shadow-md ${cl.activeShadow}` : 'border-gray-100'
+      }`}>
+        {/* Floating reaction above profile */}
+        {activeReactions[player.id] && (
+          <div
+            key={activeReactions[player.id].key}
+            className="absolute -top-10 left-8 z-30 text-3xl animate-float-emoji pointer-events-none select-none"
+          >
+            {activeReactions[player.id].emoji}
+          </div>
+        )}
+
+        <TurnTimerRing active={isActive} color={color} resetKey={timerResetKey}>
+          <PlayerAvatar name={player.name} color={color} isActive={isActive} size={44} />
+        </TurnTimerRing>
+
+        <div className="flex flex-col min-w-0">
+          <div className="flex items-center gap-1.5">
+            <span className="text-sm font-black text-gray-800 truncate max-w-[90px]">{player.name}</span>
+            {isMe && <span className="text-[9px] bg-violet-100 text-violet-600 px-1.5 py-0.5 rounded-full font-bold">You</span>}
+          </div>
+          <span className={`text-[10px] font-extrabold uppercase tracking-widest ${cl.text}`}>
+            {COLOR_LABELS[color]}
+          </span>
+        </div>
+
+        {/* Emoji Reaction button directly next to profile (only for local user) */}
+        {isMe && (
+          <div className="ml-auto">
+            <EmojiPicker onSelect={handleSendEmoji} />
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col relative overflow-hidden select-none">
+      <style>{`
+        @keyframes emoji-float {
+          0% { transform: translateY(10px) scale(0.5); opacity: 0; }
+          15% { transform: translateY(-10px) scale(1.2); opacity: 1; }
+          85% { transform: translateY(-30px) scale(1); opacity: 1; }
+          100% { transform: translateY(-45px) scale(0.8); opacity: 0; }
+        }
+        .animate-float-emoji {
+          animation: emoji-float 2.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+      `}</style>
+
       {/* Confetti */}
       <ConfettiOverlay active={confetti} />
 
@@ -240,13 +361,15 @@ export default function Game({ roomData, playerName }) {
       <main className="w-full max-w-5xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1 items-start pb-6">
 
         {/* Board area */}
-        <div className="lg:col-span-2 space-y-3">
+        <div className="lg:col-span-2 space-y-4">
 
-          {/* Top players: red + green */}
-          <div className="grid grid-cols-2 gap-3">
-            <PlayerPanel color="red" turnIndex={0} />
-            <PlayerPanel color="green" turnIndex={1} />
-          </div>
+          {/* Standard 4-Player Layout (Red/Green top) */}
+          {!is2Player && (
+            <div className="grid grid-cols-2 gap-3">
+              <PlayerPanel color="red" />
+              <PlayerPanel color="green" />
+            </div>
+          )}
 
           {/* Board */}
           <div className="flex justify-center">
@@ -257,11 +380,41 @@ export default function Game({ roomData, playerName }) {
             />
           </div>
 
-          {/* Bottom players: blue + yellow */}
-          <div className="grid grid-cols-2 gap-3">
-            <PlayerPanel color="blue" turnIndex={2} />
-            <PlayerPanel color="yellow" turnIndex={3} />
-          </div>
+          {/* Standard 4-Player Layout (Blue/Yellow bottom) */}
+          {!is2Player && (
+            <div className="grid grid-cols-2 gap-3">
+              <PlayerPanel color="blue" />
+              <PlayerPanel color="yellow" />
+            </div>
+          )}
+
+          {/* Dedicated 2-Player Controls Layout */}
+          {is2Player && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center bg-white/50 border border-gray-150 p-4 rounded-3xl shadow-sm">
+              {/* Local Player Profile (Left) */}
+              <div className="sm:col-span-1">
+                <TwoPlayerProfile player={localPlayerInfo} />
+              </div>
+
+              {/* Shared Central Dice */}
+              <div className="sm:col-span-1 flex flex-col items-center justify-center py-2 border-y sm:border-y-0 sm:border-x border-gray-150 gap-1">
+                <span className="text-[9px] font-extrabold text-gray-400 uppercase tracking-widest">
+                  {isMyTurn ? 'Your Turn' : `${activePlayer?.name}'s Turn`}
+                </span>
+                <Dice
+                  value={localDiceValue}
+                  isRolling={localIsRolling}
+                  onClick={handleRollClick}
+                  disabled={!isMyTurn || gameState.hasRolled}
+                />
+              </div>
+
+              {/* Opponent Profile (Right) */}
+              <div className="sm:col-span-1">
+                <TwoPlayerProfile player={gameState.players.find(p => p.id !== socket.id)} alignRight />
+              </div>
+            </div>
+          )}
 
           {/* Status bar */}
           <div className="text-center py-1 min-h-[22px]">

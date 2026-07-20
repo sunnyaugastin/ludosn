@@ -444,6 +444,20 @@ io.on('connection', (socket) => {
     if (callback) callback({ success: true });
   });
 
+  // 7b. Emoji reaction event
+  socket.on('sendEmoji', ({ emoji }, callback) => {
+    const lookup = findRoomByPlayerSocketId(socket.id);
+    if (!lookup) return;
+
+    const { roomCode } = lookup;
+    io.to(roomCode).emit('emojiReceived', {
+      senderId: socket.id,
+      emoji: emoji
+    });
+
+    if (callback) callback({ success: true });
+  });
+
   // 8. Handle client disconnect
   socket.on('disconnect', () => {
     console.log(`[Socket] User disconnected: ${socket.id}`);
