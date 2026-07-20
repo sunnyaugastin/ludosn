@@ -106,16 +106,34 @@ export default function Game({ roomData, playerName }) {
     }
   }, [gameState?.diceValue, localIsRolling]);
 
-  // Listen for real-time emoji reactions
+  // Listen for real-time emoji reactions — auto-clear after 2 seconds
+  const reactionTimersRef = useRef({});
   useEffect(() => {
     function onEmojiReceived({ senderId, emoji }) {
+      // Clear any existing timer for this sender
+      if (reactionTimersRef.current[senderId]) {
+        clearTimeout(reactionTimersRef.current[senderId]);
+      }
       setActiveReactions(prev => ({
         ...prev,
-        [senderId]: { emoji, key: Math.random() }
+        [senderId]: { emoji, key: Date.now() }
       }));
+      // Auto-clear after 2 seconds
+      reactionTimersRef.current[senderId] = setTimeout(() => {
+        setActiveReactions(prev => {
+          const next = { ...prev };
+          delete next[senderId];
+          return next;
+        });
+        delete reactionTimersRef.current[senderId];
+      }, 2000);
     }
     socket.on('emojiReceived', onEmojiReceived);
-    return () => socket.off('emojiReceived', onEmojiReceived);
+    return () => {
+      socket.off('emojiReceived', onEmojiReceived);
+      // Clean up all timers
+      Object.values(reactionTimersRef.current).forEach(clearTimeout);
+    };
   }, []);
 
   if (!roomData || !gameState) return null;
@@ -298,6 +316,13 @@ export default function Game({ roomData, playerName }) {
             {COLOR_LABELS[color]}
           </span>
         </div>
+
+        {/* Emoji React button next to profile (only for local user) */}
+        {isMe && (
+          <div className="ml-1">
+            <EmojiPicker onSelect={handleSendEmoji} />
+          </div>
+        )}
       </div>
     );
   }
@@ -357,30 +382,14 @@ export default function Game({ roomData, playerName }) {
             />
           </div>
 
-          {/* Spacer & In-line Emojis & Turn Notification */}
-          <div className="space-y-4">
-            {/* Emojis horizontal row */}
-            <div className="flex flex-wrap justify-center gap-2 px-2 py-1 bg-white/40 border border-gray-150 rounded-2xl max-w-md mx-auto">
-              {['😀', '😂', '😍', '😭', '😎', '👍', '👏', '❤️', '🔥', '🎉', '😡', '😮'].map(e => (
-                <button
-                  key={e}
-                  onClick={() => handleSendEmoji(e)}
-                  className="text-2xl hover:scale-125 transition duration-100 active:scale-90 p-1 cursor-pointer"
-                >
-                  {e}
-                </button>
-              ))}
-            </div>
-
-            {/* Turn alert badge */}
-            {showYourTurnFlash && (
-              <div className="flex justify-center">
-                <div className="bg-violet-600/90 backdrop-blur-sm text-white px-5 py-2 rounded-2xl text-xs font-black shadow-lg animate-bounce uppercase tracking-widest">
-                  ⭐ Your Turn!
-                </div>
+          {/* Turn alert badge */}
+          {showYourTurnFlash && (
+            <div className="flex justify-center">
+              <div className="bg-violet-600/90 backdrop-blur-sm text-white px-5 py-2 rounded-2xl text-xs font-black shadow-lg animate-bounce uppercase tracking-widest">
+                ⭐ Your Turn!
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Standard 4-Player Layout (Blue/Yellow bottom) */}
           {!is2Player && (

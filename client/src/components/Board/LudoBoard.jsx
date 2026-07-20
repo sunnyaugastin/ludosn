@@ -353,8 +353,12 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
       style={{ zIndex: 0 }}
     >
       <div
-        className="w-[56%] h-[56%] rounded-full bg-white flex flex-wrap gap-[8%] items-center justify-center p-[6%] shadow-md border border-gray-200"
-        style={{ zIndex: 1, pointerEvents: 'auto' }}
+        className="w-[62%] h-[62%] rounded-xl bg-white flex flex-wrap gap-[6%] items-center justify-center p-[6%] shadow-inner"
+        style={{ 
+          zIndex: 1, 
+          pointerEvents: 'auto',
+          border: `3px solid ${QUADRANT_COLORS[color]}`,
+        }}
       >
         {renderBaseSlots(color)}
       </div>
@@ -363,7 +367,7 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
 
   return (
     <div
-      className="w-full max-w-[520px] aspect-square bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-150 relative select-none"
+      className="w-full max-w-[520px] aspect-square bg-white rounded-2xl shadow-2xl overflow-hidden border-2 border-gray-300 relative select-none"
       style={{ 
         boxShadow: '0 8px 48px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08)',
         transform: `rotate(${boardRotation}deg)`,
