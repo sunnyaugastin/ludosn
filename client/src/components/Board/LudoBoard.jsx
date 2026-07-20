@@ -442,18 +442,17 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
             <polygon points="0,0 90,0 45,45"   fill={QUADRANT_COLORS.green}  />
             <polygon points="90,0 90,90 45,45" fill={QUADRANT_COLORS.yellow} />
             <polygon points="0,90 45,45 90,90" fill={QUADRANT_COLORS.blue}   />
-            <text 
-              x="45" 
-              y="54" 
-              textAnchor="middle" 
-              fontSize="26" 
-              fill="#94a3b8" 
-              fontWeight="bold" 
-              opacity="0.85"
-              style={{ transform: `rotate(-${boardRotation}deg)`, transformOrigin: '45px 45px' }}
-            >
-              ☆
-            </text>
+            {/* Minimalist 2D Center Emblem */}
+            <g style={{ transform: `rotate(-${boardRotation}deg)`, transformOrigin: '45px 45px' }}>
+              <circle cx="45" cy="45" r="13.5" fill="#ffffff" stroke="#e2e8f0" strokeWidth="1.8" />
+              <polygon
+                points="45,36.5 47.4,41.4 52.8,42.2 48.9,46 49.8,51.4 45,48.8 40.2,51.4 41.1,46 37.2,42.2 42.6,41.4"
+                fill="#f8fafc"
+                stroke="#64748b"
+                strokeWidth="1.2"
+                strokeLinejoin="round"
+              />
+            </g>
           </svg>
         </div>
 
