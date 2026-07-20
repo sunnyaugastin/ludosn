@@ -15,8 +15,8 @@ export default function PawnToken({ color = 'red', size = 28, isClickable = fals
   const { fill, dark, shadow, highlight, ring } = COLOR_MAP[color] || COLOR_MAP.red;
   const s = isSmall ? size * 0.72 : size;
 
-  // Unique gradient IDs per color to prevent SVG conflicts
-  const id = `pawn-${color}-${Math.random().toString(36).slice(2, 6)}`;
+  // Stable gradient IDs per color
+  const id = `pawn-${color}`;
 
   return (
     <svg

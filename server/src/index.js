@@ -379,20 +379,6 @@ io.on('connection', (socket) => {
       return callback(result);
     }
 
-    const newPos = gameState.tokens[activeColor]?.[tokenId];
-    const rolledValue = gameState.diceValue; // captured before engine clears it
-    const wasRoll6 = (room.gameState.diceValue === null && rolledValue === null) ? false : true;
-
-    // Detect if a capture happened: check if any opponent token was reset to -1
-    // We compare old positions vs new. If opponent token is now -1 and was > 0, it was captured.
-    // The engine already handles this in handleMoveToken — emit the event separately
-    // We do a simple flag check via the engine's return data if we extend it, 
-    // or we emit based on position delta logic:
-    // (For simplicity we check if any opponent token at same board cell was reset)
-    // The engine already logged CAPTURE. Emit event based on new vs old token state snapshot.
-    // Simple approach: emit capture event if new position of active token is track and any
-    // opponent's token that was previously on same global cell is now -1.
-    
     // Detect captures: compare tokens before/after
     // We already handle capture in engine — emit notification
     if (result.capturedPlayer) {
@@ -427,7 +413,7 @@ io.on('connection', (socket) => {
     if (!lookup) return;
 
     const { roomCode, player } = lookup;
-    const trimmedText = text ? text.trim() : '';
+    const trimmedText = text ? text.trim().slice(0, 150) : '';
     if (trimmedText === '') return;
 
     const message = {

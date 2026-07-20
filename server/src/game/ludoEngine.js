@@ -304,9 +304,10 @@ export function handleMoveToken(gameState, playerId, tokenId) {
 
   if (getsBonusTurn) {
     console.log(`[Engine] Bonus turn granted to ${activePlayer.name} (${bonusReason})`);
+    const rolledSix = (gameState.diceValue === 6);
     gameState.diceValue = null;
     gameState.hasRolled = false;
-    if (gameState.diceValue !== 6) {
+    if (!rolledSix) {
       gameState.consecutiveSixes = 0;
     }
   } else {
