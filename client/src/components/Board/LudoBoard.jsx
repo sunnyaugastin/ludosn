@@ -311,19 +311,19 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick, t
             
             // Dynamic clustering logic based on how many tokens share this cell
             const count = tokensHere.length;
-            let scaleSize = 20;
+            let scaleSize = 18;
             let off = { x: 0, y: 0 };
             
             if (count === 2) {
-              scaleSize = 15;
+              scaleSize = 14;
               off = idx === 0 ? { x: -5, y: 0 } : { x: 5, y: 0 };
             } else if (count === 3) {
-              scaleSize = 13;
+              scaleSize = 12;
               if (idx === 0) off = { x: 0, y: -4 };
               else if (idx === 1) off = { x: -5, y: 4 };
               else off = { x: 5, y: 4 };
             } else if (count >= 4) {
-              scaleSize = 12;
+              scaleSize = 10;
               const gridOffsets = [
                 { x: -5, y: -5 },
                 { x: 5, y: -5 },
@@ -342,21 +342,19 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick, t
                   transform: `translate(${off.x}px, ${off.y}px) rotate(-${boardRotation}deg)`,
                 }}
               >
-                {/* Tightly fit spinning dashed selection ring for clickable token */}
-                {isClickable && (
-                  <div className="absolute pointer-events-none flex items-center justify-center z-25" style={{ width: scaleSize*1.5, height: scaleSize*1.5 }}>
-                    <svg className="w-full h-full animate-spin" viewBox="0 0 32 32" style={{ animationDuration: '3.5s' }}>
-                      <circle
-                        cx="16" cy="16" r="14.5"
-                        fill="none"
-                        stroke="#7c3aed"
-                        strokeWidth="1.8"
-                        strokeDasharray="4 3"
-                        opacity="0.95"
-                      />
-                    </svg>
-                  </div>
-                )}
+                {/* Token Ring (Solid when idle, spinning dashed when clickable) */}
+                <div className="absolute pointer-events-none flex items-center justify-center z-25" style={{ width: scaleSize*1.5, height: scaleSize*1.5 }}>
+                  <svg className={`w-full h-full ${isClickable ? 'animate-spin' : ''}`} viewBox="0 0 32 32" style={{ animationDuration: '3.5s' }}>
+                    <circle
+                      cx="16" cy="16" r="14.5"
+                      fill="none"
+                      stroke={isClickable ? '#ffffff' : RING_COLORS[t.color]}
+                      strokeWidth={isClickable ? "2.5" : "3.5"}
+                      strokeDasharray={isClickable ? "6 4" : "none"}
+                      opacity={isClickable ? "1" : "0.7"}
+                    />
+                  </svg>
+                </div>
                 <PawnToken
                   color={t.color}
                   size={scaleSize}
@@ -404,6 +402,13 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick, t
     }
   }
 
+  const RING_COLORS = {
+    red:    '#800000',
+    green:  '#004d00',
+    blue:   '#000066',
+    yellow: '#b38f00',
+  };
+
   /* Render base token slots in each quadrant (solid colored circles when empty) */
   const renderBaseSlots = (color) => {
     const tokenPositions = positions[color] || [];
@@ -427,22 +432,20 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick, t
                 className={`relative flex items-center justify-center ${isClickable ? 'cursor-pointer' : ''}`}
                 style={{ transform: `rotate(-${boardRotation}deg)` }}
               >
-                {/* Tightly fit spinning dashed selection ring for clickable base token */}
-                {isClickable && (
-                  <div className="absolute inset-[-3px] pointer-events-none flex items-center justify-center z-25">
-                    <svg className="w-full h-full animate-spin" viewBox="0 0 32 32" style={{ animationDuration: '3.5s' }}>
-                      <circle
-                        cx="16" cy="16" r="14"
-                        fill="none"
-                        stroke="#7c3aed"
-                        strokeWidth="2"
-                        strokeDasharray="4 3"
-                        opacity="0.95"
-                      />
-                    </svg>
-                  </div>
-                )}
-                <PawnToken color={color} size={15} isClickable={isClickable} tokenStyle={tokenStyle} />
+                {/* Base Ring (Solid when idle, spinning dashed when clickable) */}
+                <div className="absolute pointer-events-none flex items-center justify-center z-25" style={{ width: '24px', height: '24px' }}>
+                  <svg className={`w-full h-full ${isClickable ? 'animate-spin' : ''}`} viewBox="0 0 32 32" style={{ animationDuration: '3.5s' }}>
+                    <circle
+                      cx="16" cy="16" r="14.5"
+                      fill="none"
+                      stroke={isClickable ? '#ffffff' : RING_COLORS[color]}
+                      strokeWidth={isClickable ? "2.5" : "3.5"}
+                      strokeDasharray={isClickable ? "6 4" : "none"}
+                      opacity={isClickable ? "1" : "0.7"}
+                    />
+                  </svg>
+                </div>
+                <PawnToken color={color} size={14} isClickable={isClickable} tokenStyle={tokenStyle} />
               </div>
             );
           })()}

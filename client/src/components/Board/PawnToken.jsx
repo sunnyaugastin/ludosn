@@ -55,43 +55,36 @@ export default function PawnToken({
       >
         <defs>
           <linearGradient id={`silverGrad-${safeColor}`} x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#f8fafc" />
-            <stop offset="0.5" stopColor="#cbd5e1" />
+            <stop stopColor="#ffffff" />
+            <stop offset="0.5" stopColor="#e2e8f0" />
             <stop offset="1" stopColor="#94a3b8" />
           </linearGradient>
-          <linearGradient id={`innerGrad-${safeColor}`} x1="0" y1="0" x2="32" y2="40" gradientUnits="userSpaceOnUse">
+          <linearGradient id={`innerGrad-${safeColor}`} x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
             <stop stopColor={light} />
             <stop offset="0.6" stopColor={fill} />
             <stop offset="1" stopColor={dark} />
           </linearGradient>
-          <filter id="pinShadow" x="-20%" y="-20%" width="140%" height="140%">
-            <feDropShadow dx="0" dy="4" stdDeviation="3" floodColor="#000000" floodOpacity="0.4" />
-          </filter>
         </defs>
 
-        {/* ── Drop Shadow for the Tip ── */}
-        <ellipse cx="16" cy="38" rx="5" ry="2.5" fill="#000000" opacity="0.35" filter="blur(2px)" />
-
-        {/* ── Outer Silver 3D Rim ── */}
+        {/* ── Outer Silver 3D Rim (Teardrop Body) ── */}
         <path
-          d="M 16 38 C 16 38, 4 23, 4 14 A 12 12 0 1 1 28 14 C 28 23, 16 38, 16 38 Z"
+          d="M 16 40 C 16 40, 4 23, 4 14 A 12 12 0 1 1 28 14 C 28 23, 16 40, 16 40 Z"
           fill={`url(#silverGrad-${safeColor})`}
-          stroke="#64748b"
-          strokeWidth="1"
-          filter="url(#pinShadow)"
+          stroke="#475569"
+          strokeWidth="1.2"
         />
 
-        {/* ── Inner Colored Fill ── */}
-        <path
-          d="M 16 34 C 16 34, 7 22, 7 14 A 9 9 0 1 1 25 14 C 25 22, 16 34, 16 34 Z"
+        {/* ── Inner Colored Circle (Top Head) ── */}
+        <circle
+          cx="16" cy="14" r="7.5"
           fill={`url(#innerGrad-${safeColor})`}
           stroke={dark}
-          strokeWidth="0.5"
+          strokeWidth="0.8"
         />
 
-        {/* ── White Accent Ring ── */}
-        <circle cx="16" cy="14" r="5.5" fill="none" stroke="#ffffff" strokeWidth="1.5" opacity="0.4" />
-        <circle cx="16" cy="14" r="3.5" fill="#ffffff" opacity="0.8" />
+        {/* ── White Accent Rings ── */}
+        <circle cx="16" cy="14" r="4.5" fill="none" stroke="#ffffff" strokeWidth="1.5" opacity="0.7" />
+        <circle cx="16" cy="14" r="2.5" fill="#ffffff" opacity="0.9" />
       </svg>
     );
   }
