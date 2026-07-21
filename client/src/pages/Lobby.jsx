@@ -16,6 +16,12 @@ export default function Lobby({ roomData, playerName, onLeave }) {
   const [isCopied, setIsCopied] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
   const [startError, setStartError] = useState('');
+  const [tokenStyle, setTokenStyle] = useState(() => localStorage.getItem('ludo_token_style') || 'pawn');
+
+  const handleSelectTokenStyle = (style) => {
+    setTokenStyle(style);
+    localStorage.setItem('ludo_token_style', style);
+  };
 
   if (!roomData) return null;
 
@@ -116,6 +122,37 @@ export default function Lobby({ roomData, playerName, onLeave }) {
               </button>
             </div>
 
+            {/* Token Style Selector */}
+            <div className="space-y-2">
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Choose Token Style</p>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => handleSelectTokenStyle('pawn')}
+                  className={`flex items-center justify-center gap-2 py-3 px-4 rounded-2xl border-2 font-bold text-xs transition-all ${
+                    tokenStyle === 'pawn'
+                      ? 'border-violet-600 bg-violet-50 text-violet-700 shadow-sm ring-2 ring-violet-200'
+                      : 'border-gray-100 bg-white text-gray-500 hover:border-gray-250 hover:bg-gray-50'
+                  }`}
+                >
+                  <PawnToken color={myColor} size={22} tokenStyle="pawn" />
+                  <span>Classic Pawn</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSelectTokenStyle('disk')}
+                  className={`flex items-center justify-center gap-2 py-3 px-4 rounded-2xl border-2 font-bold text-xs transition-all ${
+                    tokenStyle === 'disk'
+                      ? 'border-violet-600 bg-violet-50 text-violet-700 shadow-sm ring-2 ring-violet-200'
+                      : 'border-gray-100 bg-white text-gray-500 hover:border-gray-250 hover:bg-gray-50'
+                  }`}
+                >
+                  <PawnToken color={myColor} size={22} tokenStyle="disk" />
+                  <span>Flat Disk</span>
+                </button>
+              </div>
+            </div>
+
             {/* Color Picker */}
             <div className="space-y-2">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Choose Your Color</p>
@@ -137,7 +174,7 @@ export default function Lobby({ roomData, playerName, onLeave }) {
                             : 'border-gray-100 bg-white hover:border-gray-250 hover:bg-gray-50 cursor-pointer'
                       }`}
                     >
-                      <PawnToken color={c} size={28} />
+                      <PawnToken color={c} size={28} tokenStyle={tokenStyle} />
                       <span className={`text-[10px] font-bold ${selected ? cl.text : 'text-gray-400'}`}>
                         {taken ? 'Taken' : COLOR_LABELS[c]}
                       </span>
@@ -164,7 +201,7 @@ export default function Lobby({ roomData, playerName, onLeave }) {
                         isCurrent ? 'border-violet-100 bg-violet-50' : 'border-gray-100 bg-white'
                       }`}
                     >
-                      <PawnToken color={player.color || 'red'} size={24} />
+                      <PawnToken color={player.color || 'red'} size={24} tokenStyle={tokenStyle} />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-bold text-gray-800 truncate">
                           {player.name}

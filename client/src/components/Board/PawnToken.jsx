@@ -19,7 +19,8 @@ export default function PawnToken({
   isSmall = false,
   tokenStyle = 'pawn'
 }) {
-  const { fill, dark, light, stroke } = COLOR_MAP[color] || COLOR_MAP.red;
+  const safeColor = (typeof color === 'string' ? color.toLowerCase() : 'red');
+  const { fill, dark, light, stroke } = COLOR_MAP[safeColor] || COLOR_MAP.red;
   const s = isSmall ? size * 0.75 : size;
 
   if (tokenStyle === 'disk') {
