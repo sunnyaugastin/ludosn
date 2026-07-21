@@ -326,17 +326,30 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
                   transform: `translate(${off.x}px, ${off.y}px) rotate(-${boardRotation}deg)`,
                 }}
               >
-                {/* Spinning dashed selection ring for clickable token */}
-                {isClickable && (
-                  <div className="absolute inset-[-5px] pointer-events-none flex items-center justify-center z-25">
+                {/* Tightly fit spinning dashed selection ring for clickable token */}
+                {isClickable ? (
+                  <div className="absolute inset-[-1px] pointer-events-none flex items-center justify-center z-25">
                     <svg className="w-full h-full animate-spin" viewBox="0 0 32 32" style={{ animationDuration: '3.5s' }}>
                       <circle
-                        cx="16" cy="16" r="13.5"
+                        cx="16" cy="16" r="14.5"
                         fill="none"
                         stroke="#7c3aed"
                         strokeWidth="1.8"
                         strokeDasharray="4 3"
-                        opacity="0.9"
+                        opacity="0.95"
+                      />
+                    </svg>
+                  </div>
+                ) : isMyTurn && t.color === myColor && !animatingRef.current && (
+                  /* Inactive token ring when dice roll didn't activate this token */
+                  <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-60 z-20">
+                    <svg className="w-full h-full" viewBox="0 0 32 32">
+                      <circle
+                        cx="16" cy="16" r="14"
+                        fill="none"
+                        stroke="#94a3b8"
+                        strokeWidth="1.2"
+                        strokeDasharray="3 3"
                       />
                     </svg>
                   </div>
@@ -405,12 +418,42 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
         >
           {tokenHere !== null && (() => {
             const isClickable = isMyTurn && color === myColor && validTokens.includes(tokenHere);
+            const isInactiveOnTurn = isMyTurn && color === myColor && !isClickable && !animatingRef.current;
             return (
               <div
                 onClick={() => isClickable && onTokenClick(tokenHere)}
-                className={`flex items-center justify-center ${isClickable ? 'cursor-pointer' : ''}`}
+                className={`relative flex items-center justify-center ${isClickable ? 'cursor-pointer' : ''}`}
                 style={{ transform: `rotate(-${boardRotation}deg)` }}
               >
+                {/* Tightly fit spinning dashed selection ring for clickable base token */}
+                {isClickable && (
+                  <div className="absolute inset-[-3px] pointer-events-none flex items-center justify-center z-25">
+                    <svg className="w-full h-full animate-spin" viewBox="0 0 32 32" style={{ animationDuration: '3.5s' }}>
+                      <circle
+                        cx="16" cy="16" r="14"
+                        fill="none"
+                        stroke="#7c3aed"
+                        strokeWidth="2"
+                        strokeDasharray="4 3"
+                        opacity="0.95"
+                      />
+                    </svg>
+                  </div>
+                )}
+                {/* Inactive ring for locked base tokens on your turn */}
+                {isInactiveOnTurn && (
+                  <div className="absolute inset-[-2px] pointer-events-none flex items-center justify-center opacity-60 z-20">
+                    <svg className="w-full h-full" viewBox="0 0 32 32">
+                      <circle
+                        cx="16" cy="16" r="14"
+                        fill="none"
+                        stroke="#94a3b8"
+                        strokeWidth="1.2"
+                        strokeDasharray="3 3"
+                      />
+                    </svg>
+                  </div>
+                )}
                 <PawnToken color={color} size={15} isClickable={isClickable} />
               </div>
             );
