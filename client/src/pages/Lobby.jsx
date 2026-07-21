@@ -125,30 +125,42 @@ export default function Lobby({ roomData, playerName, onLeave }) {
             {/* Token Style Selector */}
             <div className="space-y-2">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Choose Token Style</p>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-2">
                 <button
                   type="button"
                   onClick={() => handleSelectTokenStyle('pawn')}
-                  className={`flex items-center justify-center gap-2 py-3 px-4 rounded-2xl border-2 font-bold text-xs transition-all ${
+                  className={`flex flex-col items-center justify-center gap-1.5 py-2.5 px-1 rounded-2xl border-2 font-bold text-[10px] transition-all ${
                     tokenStyle === 'pawn'
                       ? 'border-violet-600 bg-violet-50 text-violet-700 shadow-sm ring-2 ring-violet-200'
                       : 'border-gray-100 bg-white text-gray-500 hover:border-gray-250 hover:bg-gray-50'
                   }`}
                 >
-                  <PawnToken color={myColor} size={22} tokenStyle="pawn" />
-                  <span>Classic Pawn</span>
+                  <PawnToken color={myColor} size={20} tokenStyle="pawn" />
+                  <span>Classic</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => handleSelectTokenStyle('disk')}
-                  className={`flex items-center justify-center gap-2 py-3 px-4 rounded-2xl border-2 font-bold text-xs transition-all ${
+                  className={`flex flex-col items-center justify-center gap-1.5 py-2.5 px-1 rounded-2xl border-2 font-bold text-[10px] transition-all ${
                     tokenStyle === 'disk'
                       ? 'border-violet-600 bg-violet-50 text-violet-700 shadow-sm ring-2 ring-violet-200'
                       : 'border-gray-100 bg-white text-gray-500 hover:border-gray-250 hover:bg-gray-50'
                   }`}
                 >
-                  <PawnToken color={myColor} size={22} tokenStyle="disk" />
-                  <span>Flat Disk</span>
+                  <PawnToken color={myColor} size={20} tokenStyle="disk" />
+                  <span>Disk</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSelectTokenStyle('pin')}
+                  className={`flex flex-col items-center justify-center gap-1.5 py-2.5 px-1 rounded-2xl border-2 font-bold text-[10px] transition-all ${
+                    tokenStyle === 'pin'
+                      ? 'border-violet-600 bg-violet-50 text-violet-700 shadow-sm ring-2 ring-violet-200'
+                      : 'border-gray-100 bg-white text-gray-500 hover:border-gray-250 hover:bg-gray-50'
+                  }`}
+                >
+                  <PawnToken color={myColor} size={20} tokenStyle="pin" />
+                  <span>Map Pin</span>
                 </button>
               </div>
             </div>

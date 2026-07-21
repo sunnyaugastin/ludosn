@@ -377,7 +377,7 @@ export default function Game({ roomData, playerName }) {
           <div className="flex items-center bg-gray-100 p-0.5 rounded-xl border border-gray-200">
             <button
               onClick={() => toggleTokenStyle('pawn')}
-              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 ${
+              className={`px-2 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 ${
                 tokenStyle === 'pawn' ? 'bg-white text-violet-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -385,11 +385,19 @@ export default function Game({ roomData, playerName }) {
             </button>
             <button
               onClick={() => toggleTokenStyle('disk')}
-              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 ${
+              className={`px-2 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 ${
                 tokenStyle === 'disk' ? 'bg-white text-violet-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'
               }`}
             >
               <span>🔘</span> <span>Disk</span>
+            </button>
+            <button
+              onClick={() => toggleTokenStyle('pin')}
+              className={`px-2 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 ${
+                tokenStyle === 'pin' ? 'bg-white text-violet-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <span>📍</span> <span>Pin</span>
             </button>
           </div>
 

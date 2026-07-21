@@ -308,14 +308,30 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick, t
         <div className="relative w-full h-full flex items-center justify-center">
           {tokensHere.map((t, idx) => {
             const isClickable = isMyTurn && t.color === myColor && validTokens.includes(t.tokenId) && !animatingRef.current;
-            const stacked = tokensHere.length > 1;
-            const offsets = [
-              { x: stacked ? -4 : 0, y: stacked ? -4 : 0 },
-              { x: stacked ? 4  : 0, y: stacked ? 4  : 0 },
-              { x: stacked ? -4 : 0, y: stacked ? 4  : 0 },
-              { x: stacked ? 4  : 0, y: stacked ? -4 : 0 },
-            ];
-            const off = offsets[idx] || { x: 0, y: 0 };
+            
+            // Dynamic clustering logic based on how many tokens share this cell
+            const count = tokensHere.length;
+            let scaleSize = 20;
+            let off = { x: 0, y: 0 };
+            
+            if (count === 2) {
+              scaleSize = 15;
+              off = idx === 0 ? { x: -5, y: 0 } : { x: 5, y: 0 };
+            } else if (count === 3) {
+              scaleSize = 13;
+              if (idx === 0) off = { x: 0, y: -4 };
+              else if (idx === 1) off = { x: -5, y: 4 };
+              else off = { x: 5, y: 4 };
+            } else if (count >= 4) {
+              scaleSize = 12;
+              const gridOffsets = [
+                { x: -5, y: -5 },
+                { x: 5, y: -5 },
+                { x: -5, y: 5 },
+                { x: 5, y: 5 },
+              ];
+              off = gridOffsets[idx % 4];
+            }
 
             return (
               <div
@@ -328,7 +344,7 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick, t
               >
                 {/* Tightly fit spinning dashed selection ring for clickable token */}
                 {isClickable && (
-                  <div className="absolute inset-[-1px] pointer-events-none flex items-center justify-center z-25">
+                  <div className="absolute pointer-events-none flex items-center justify-center z-25" style={{ width: scaleSize*1.5, height: scaleSize*1.5 }}>
                     <svg className="w-full h-full animate-spin" viewBox="0 0 32 32" style={{ animationDuration: '3.5s' }}>
                       <circle
                         cx="16" cy="16" r="14.5"
@@ -343,9 +359,8 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick, t
                 )}
                 <PawnToken
                   color={t.color}
-                  size={stacked ? 14 : 20}
+                  size={scaleSize}
                   isClickable={isClickable}
-                  isSmall={stacked}
                   tokenStyle={tokenStyle}
                 />
               </div>
