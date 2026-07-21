@@ -18,7 +18,7 @@ const TRACK = [
   [14,7],
   [14,6],[13,6],[12,6],[11,6],[10,6],[9,6],
   [8,5],[8,4],[8,3],[8,2],[8,1],[8,0],
-  [7,0],
+  [7,0],[6,0]
 ];
 
 const START_OFFSETS = { red: 0, green: 13, yellow: 26, blue: 39 };
@@ -85,13 +85,14 @@ const HOME_PATH_BG = {
 export default function LudoBoard({ gameState, validTokens = [], onTokenClick }) {
   // Animated display positions: color -> [pos0, pos1, pos2, pos3]
   const [displayPositions, setDisplayPositions] = useState(null);
+  const [trailCellKey, setTrailCellKey] = useState(null);
   const animatingRef = useRef(false);
   const prevPositionsRef = useRef(null);
 
-  /* Step-by-step token movement */
+  /* Step-by-step token movement & capture animation */
   useEffect(() => {
-    if (!gameState) return;
-    const newPositions = gameState.tokens;
+    const newPositions = gameState?.tokens;
+    if (!newPositions) return;
 
     if (!prevPositionsRef.current) {
       prevPositionsRef.current = newPositions;
@@ -99,64 +100,77 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
       return;
     }
 
-    // Detect which tokens moved
+    // Detect forward moved token and captured token
     let movedColor = null, movedTokenId = null, oldPos = -1, newPos = -1;
-    let tokensChangedCount = 0;
+    let capturedColor = null, capturedTokenId = null, capturedOldPos = -1;
 
     for (const color of Object.keys(newPositions)) {
       newPositions[color].forEach((pos, id) => {
         const prev = prevPositionsRef.current[color]?.[id];
-        if (prev !== pos) {
-          tokensChangedCount++;
-          // Only animate forward moves (ignore captures sending tokens to -1)
+        if (prev !== undefined && prev !== pos) {
           if (pos > prev) {
             movedColor = color;
             movedTokenId = id;
             oldPos = prev;
             newPos = pos;
+          } else if (pos === -1 && prev >= 0) {
+            capturedColor = color;
+            capturedTokenId = id;
+            capturedOldPos = prev;
           }
         }
       });
     }
 
-    // If multiple tokens changed (e.g., a capture) or no valid forward move found,
-    // snap everything immediately to avoid animation glitches.
-    if (!movedColor || animatingRef.current || tokensChangedCount > 1) {
+    if (!movedColor || animatingRef.current) {
       prevPositionsRef.current = newPositions;
       setDisplayPositions(newPositions);
       return;
     }
 
-    // Build list of intermediate track positions
-    const steps = [];
+    // Forward steps
+    const forwardSteps = [];
     if (oldPos === -1 && newPos === 0) {
-      steps.push(0);
+      forwardSteps.push(0);
     } else if (newPos > oldPos && newPos <= 56) {
-      for (let s = oldPos + 1; s <= newPos; s++) steps.push(s);
+      for (let s = oldPos + 1; s <= newPos; s++) forwardSteps.push(s);
     } else {
-      steps.push(newPos);
+      forwardSteps.push(newPos);
     }
 
-    if (steps.length <= 1) {
-      prevPositionsRef.current = newPositions;
-      setDisplayPositions(newPositions);
-      return;
+    // Captured reverse steps
+    const backwardSteps = [];
+    if (capturedColor && capturedOldPos >= 0) {
+      for (let s = capturedOldPos - 1; s >= -1; s--) backwardSteps.push(s);
     }
 
-    // Animate step-by-step
     animatingRef.current = true;
     let stepIdx = 0;
 
-    const animStep = () => {
-      if (stepIdx >= steps.length) {
-        animatingRef.current = false;
-        prevPositionsRef.current = newPositions;
-        setDisplayPositions(newPositions);
+    const runForwardAnimation = () => {
+      if (stepIdx >= forwardSteps.length) {
+        setTrailCellKey(null);
+        if (backwardSteps.length > 0) {
+          runBackwardAnimation();
+        } else {
+          animatingRef.current = false;
+          prevPositionsRef.current = newPositions;
+          setDisplayPositions(newPositions);
+        }
         return;
       }
 
-      const currentStep = steps[stepIdx];
+      const currentStep = forwardSteps[stepIdx];
+      const prevStep = stepIdx === 0 ? oldPos : forwardSteps[stepIdx - 1];
       stepIdx++;
+
+      if (prevStep >= 0 && prevStep <= 55) {
+        const [tr, tc] = getCoords(movedColor, movedTokenId, prevStep);
+        setTrailCellKey(`${tr},${tc}`);
+      } else {
+        setTrailCellKey(null);
+      }
+
       soundTokenMove();
 
       setDisplayPositions(prev => {
@@ -169,10 +183,37 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
         };
       });
 
-      setTimeout(animStep, 160);
+      setTimeout(runForwardAnimation, 150);
     };
 
-    animStep();
+    let backIdx = 0;
+    const runBackwardAnimation = () => {
+      if (backIdx >= backwardSteps.length) {
+        setTrailCellKey(null);
+        animatingRef.current = false;
+        prevPositionsRef.current = newPositions;
+        setDisplayPositions(newPositions);
+        return;
+      }
+
+      const currentBackStep = backwardSteps[backIdx];
+      backIdx++;
+      soundTokenMove();
+
+      setDisplayPositions(prev => {
+        if (!prev) return newPositions;
+        return {
+          ...prev,
+          [capturedColor]: prev[capturedColor].map((p, i) =>
+            i === capturedTokenId ? currentBackStep : p
+          )
+        };
+      });
+
+      setTimeout(runBackwardAnimation, 60);
+    };
+
+    runForwardAnimation();
   }, [gameState?.tokens]);
 
   if (!gameState) return null;
@@ -285,6 +326,21 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
                   transform: `translate(${off.x}px, ${off.y}px) rotate(-${boardRotation}deg)`,
                 }}
               >
+                {/* Spinning dashed selection ring for clickable token */}
+                {isClickable && (
+                  <div className="absolute inset-[-5px] pointer-events-none flex items-center justify-center z-25">
+                    <svg className="w-full h-full animate-spin" viewBox="0 0 32 32" style={{ animationDuration: '3.5s' }}>
+                      <circle
+                        cx="16" cy="16" r="13.5"
+                        fill="none"
+                        stroke="#7c3aed"
+                        strokeWidth="1.8"
+                        strokeDasharray="4 3"
+                        opacity="0.9"
+                      />
+                    </svg>
+                  </div>
+                )}
                 <PawnToken
                   color={t.color}
                   size={stacked ? 14 : 20}
@@ -308,6 +364,10 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
           backgroundColor: cellBg,
         }}
       >
+        {/* Footprint trail shadow on cell where token just stepped from */}
+        {key === trailCellKey && (
+          <div className="absolute inset-1 bg-black/20 rounded-full animate-ping border border-dashed border-gray-500/70 pointer-events-none z-5" />
+        )}
         {cellContent}
       </div>
     );

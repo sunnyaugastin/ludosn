@@ -55,6 +55,8 @@ export default function PawnToken({ color = 'red', size = 20, isClickable = fals
 
       {/* ── Head Knob (Sphere) ── */}
       <circle cx="14" cy="7.8" r="5.8" fill={fill} stroke={stroke} strokeWidth="1" />
+      {/* Crisp White Top Circular Dot for High Contrast */}
+      <circle cx="14" cy="4.2" r="2.2" fill="#ffffff" stroke={dark} strokeWidth="0.5" />
 
       {/* 2D Apple/Material Vector Highlights */}
       {/* Top-left head arc highlight */}
