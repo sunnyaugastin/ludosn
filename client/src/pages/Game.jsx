@@ -35,6 +35,11 @@ export default function Game({ roomData, playerName }) {
   const [rollError, setRollError] = useState('');
   const [showYourTurnFlash, setShowYourTurnFlash] = useState(false);
   const [confetti, setConfetti] = useState(false);
+  const [timerResetKey, setTimerResetKey] = useState(0);
+  const prevTurnRef = useRef(null);
+  const gameState = roomData?.gameState;
+  const [latestChatMsg, setLatestChatMsg] = useState(null);
+  const latestChatTimerRef = useRef(null);
   const [tokenStyle, setTokenStyle] = useState(() => localStorage.getItem('ludo_token_style') || 'pawn');
 
   const toggleTokenStyle = (style) => {
