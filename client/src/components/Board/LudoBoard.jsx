@@ -82,7 +82,7 @@ const HOME_PATH_BG = {
 
 /* ─── LudoBoard ─────────────────────────────────────────────────────────────── */
 
-export default function LudoBoard({ gameState, validTokens = [], onTokenClick, tokenStyle = 'pawn' }) {
+export default function LudoBoard({ gameState, validTokens = [], onTokenClick, tokenStyle = 'pawn', onAnimationStateChange }) {
   // Animated display positions: color -> [pos0, pos1, pos2, pos3]
   const [displayPositions, setDisplayPositions] = useState(null);
   const [trailCellKey, setTrailCellKey] = useState(null);
@@ -122,7 +122,19 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick, t
       });
     }
 
-    if (!movedColor || animatingRef.current) {
+    if (!movedColor) {
+      if (!animatingRef.current) {
+        prevPositionsRef.current = newPositions;
+        setDisplayPositions(newPositions);
+      }
+      return;
+    }
+
+    // If an animation is already running and a NEW move arrives, abort the old one.
+    // (This shouldn't happen with the interaction blocks, but is a safe fallback).
+    if (animatingRef.current) {
+      animatingRef.current = false;
+      if (onAnimationStateChange) onAnimationStateChange(false);
       prevPositionsRef.current = newPositions;
       setDisplayPositions(newPositions);
       return;
@@ -145,6 +157,7 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick, t
     }
 
     animatingRef.current = true;
+    if (onAnimationStateChange) onAnimationStateChange(true);
     let stepIdx = 0;
 
     const runForwardAnimation = () => {
@@ -154,6 +167,7 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick, t
           runBackwardAnimation();
         } else {
           animatingRef.current = false;
+          if (onAnimationStateChange) onAnimationStateChange(false);
           prevPositionsRef.current = newPositions;
           setDisplayPositions(newPositions);
         }
@@ -191,6 +205,7 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick, t
       if (backIdx >= backwardSteps.length) {
         setTrailCellKey(null);
         animatingRef.current = false;
+        if (onAnimationStateChange) onAnimationStateChange(false);
         prevPositionsRef.current = newPositions;
         setDisplayPositions(newPositions);
         return;
@@ -343,15 +358,15 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick, t
                 }}
               >
                 {/* Token Ring (Solid when idle, spinning dashed when clickable) */}
-                <div className="absolute pointer-events-none flex items-center justify-center z-25" style={{ width: scaleSize*1.5, height: scaleSize*1.5 }}>
+                <div className="absolute pointer-events-none flex items-center justify-center z-25" style={{ width: scaleSize*1.2, height: scaleSize*1.2, bottom: '10%' }}>
                   <svg className={`w-full h-full ${isClickable ? 'animate-spin' : ''}`} viewBox="0 0 32 32" style={{ animationDuration: '3.5s' }}>
                     <circle
-                      cx="16" cy="16" r="14.5"
+                      cx="16" cy="16" r="12"
                       fill="none"
                       stroke={isClickable ? '#ffffff' : RING_COLORS[t.color]}
-                      strokeWidth={isClickable ? "2.5" : "3.5"}
-                      strokeDasharray={isClickable ? "6 4" : "none"}
-                      opacity={isClickable ? "1" : "0.7"}
+                      strokeWidth={isClickable ? "3" : "4"}
+                      strokeDasharray={isClickable ? "5 4" : "none"}
+                      opacity={isClickable ? "1" : "0.5"}
                     />
                   </svg>
                 </div>
@@ -433,15 +448,15 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick, t
                 style={{ transform: `rotate(-${boardRotation}deg)` }}
               >
                 {/* Base Ring (Solid when idle, spinning dashed when clickable) */}
-                <div className="absolute pointer-events-none flex items-center justify-center z-25" style={{ width: '24px', height: '24px' }}>
+                <div className="absolute pointer-events-none flex items-center justify-center z-25" style={{ width: '20px', height: '20px', bottom: '0px' }}>
                   <svg className={`w-full h-full ${isClickable ? 'animate-spin' : ''}`} viewBox="0 0 32 32" style={{ animationDuration: '3.5s' }}>
                     <circle
-                      cx="16" cy="16" r="14.5"
+                      cx="16" cy="16" r="12"
                       fill="none"
                       stroke={isClickable ? '#ffffff' : RING_COLORS[color]}
-                      strokeWidth={isClickable ? "2.5" : "3.5"}
-                      strokeDasharray={isClickable ? "6 4" : "none"}
-                      opacity={isClickable ? "1" : "0.7"}
+                      strokeWidth={isClickable ? "3" : "4"}
+                      strokeDasharray={isClickable ? "5 4" : "none"}
+                      opacity={isClickable ? "1" : "0.5"}
                     />
                   </svg>
                 </div>

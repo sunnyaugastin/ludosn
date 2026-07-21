@@ -41,6 +41,7 @@ export default function Game({ roomData, playerName }) {
   const [latestChatMsg, setLatestChatMsg] = useState(null);
   const latestChatTimerRef = useRef(null);
   const [tokenStyle, setTokenStyle] = useState(() => localStorage.getItem('ludo_token_style') || 'pawn');
+  const [isBoardAnimating, setIsBoardAnimating] = useState(false);
 
   const toggleTokenStyle = (style) => {
     setTokenStyle(style);
@@ -180,12 +181,12 @@ export default function Game({ roomData, playerName }) {
       return acc;
     }, []);
   };
-  const validTokens = isMyTurn && gameState.hasRolled && !localIsRolling
+  const validTokens = isMyTurn && gameState.hasRolled && !localIsRolling && !isBoardAnimating
     ? getValidMoves(myColor, gameState.diceValue)
     : [];
 
   const handleRollClick = () => {
-    if (!isMyTurn || gameState.hasRolled || localIsRolling) return;
+    if (!isMyTurn || gameState.hasRolled || localIsRolling || isBoardAnimating) return;
     setRollError('');
     socket.emit('rollDice', (res) => {
       if (res && !res.success) setRollError(res.message || 'Failed to roll.');
@@ -193,7 +194,7 @@ export default function Game({ roomData, playerName }) {
   };
 
   const handleTokenClick = (tokenId) => {
-    if (!isMyTurn || !gameState.hasRolled) return;
+    if (!isMyTurn || !gameState.hasRolled || isBoardAnimating) return;
     socket.emit('moveToken', { tokenId }, (res) => {
       if (res && !res.success) console.error('Move failed:', res.message);
     });
@@ -431,6 +432,7 @@ export default function Game({ roomData, playerName }) {
               validTokens={validTokens}
               onTokenClick={handleTokenClick}
               tokenStyle={tokenStyle}
+              onAnimationStateChange={setIsBoardAnimating}
             />
           </div>
 
