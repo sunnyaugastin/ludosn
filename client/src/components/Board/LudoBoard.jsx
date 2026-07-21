@@ -284,8 +284,7 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
                 className={`absolute transition-all duration-500 ease-out flex items-center justify-center ${isClickable ? 'cursor-pointer z-20' : 'z-10'}`}
                 style={{ 
                   transform: `translate(${off.x}px, ${off.y}px) rotate(-${boardRotation}deg)`,
-                  width: '28px',
-                  height: '36px',
+                  bottom: stacked ? '1px' : '3px',
                 }}
               >
                 <PawnToken
@@ -383,7 +382,7 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
 
   return (
     <div
-      className="w-full max-w-[520px] aspect-square bg-white rounded-2xl shadow-2xl overflow-hidden border-2 border-gray-300 relative select-none"
+      className="w-full max-w-[520px] aspect-square bg-white rounded-2xl shadow-2xl border-2 border-gray-300 relative select-none"
       style={{ 
         boxShadow: '0 8px 48px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08)',
         transform: `rotate(${boardRotation}deg)`,
@@ -401,7 +400,7 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
       >
         {/* ── RED quadrant (top-left, rows 1-6, cols 1-6) ── */}
         <div
-          className="relative border border-gray-250 transition-colors duration-500"
+          className="relative border border-gray-250 transition-colors duration-500 rounded-tl-2xl"
           style={{
             gridRow: '1 / 7', gridColumn: '1 / 7',
             backgroundColor: QUADRANT_COLORS.red,
@@ -412,7 +411,7 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
 
         {/* ── GREEN quadrant (top-right, rows 1-6, cols 10-15) ── */}
         <div
-          className="relative border border-gray-250 transition-colors duration-500"
+          className="relative border border-gray-250 transition-colors duration-500 rounded-tr-2xl"
           style={{
             gridRow: '1 / 7', gridColumn: '10 / 16',
             backgroundColor: QUADRANT_COLORS.green,
@@ -423,7 +422,7 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
 
         {/* ── BLUE quadrant (bottom-left, rows 10-15, cols 1-6) ── */}
         <div
-          className="relative border border-gray-250 transition-colors duration-500"
+          className="relative border border-gray-250 transition-colors duration-500 rounded-bl-2xl"
           style={{
             gridRow: '10 / 16', gridColumn: '1 / 7',
             backgroundColor: QUADRANT_COLORS.blue,
@@ -434,7 +433,7 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
 
         {/* ── YELLOW quadrant (bottom-right, rows 10-15, cols 10-15) ── */}
         <div
-          className="relative border border-gray-250 transition-colors duration-500"
+          className="relative border border-gray-250 transition-colors duration-500 rounded-br-2xl"
           style={{
             gridRow: '10 / 16', gridColumn: '10 / 16',
             backgroundColor: QUADRANT_COLORS.yellow,
