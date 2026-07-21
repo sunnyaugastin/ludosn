@@ -88,14 +88,6 @@ export default function App() {
     }
 
     // Game event broadcasts
-    function onCaptureEvent({ attackerName, attackerColor, victimName, victimColor }) {
-      showToast(`⚔️ ${attackerName} captured ${victimName}'s token!`, 'capture', 3500);
-    }
-
-    function onBonusTurnEvent({ playerName: pName, reason }) {
-      showToast(`🎲 ${pName} got a bonus roll! (${reason})`, 'bonus', 2500);
-    }
-
     function onPlayerDisconnected({ playerName: pName }) {
       showToast(`${pName} disconnected from the game`, 'disconnect', 4000);
     }
@@ -103,16 +95,12 @@ export default function App() {
     socket.on('connect', onConnect);
     socket.on('disconnect', onDisconnect);
     socket.on('roomUpdated', onRoomUpdated);
-    socket.on('captureEvent', onCaptureEvent);
-    socket.on('bonusTurnEvent', onBonusTurnEvent);
     socket.on('playerDisconnected', onPlayerDisconnected);
 
     return () => {
       socket.off('connect', onConnect);
       socket.off('disconnect', onDisconnect);
       socket.off('roomUpdated', onRoomUpdated);
-      socket.off('captureEvent', onCaptureEvent);
-      socket.off('bonusTurnEvent', onBonusTurnEvent);
       socket.off('playerDisconnected', onPlayerDisconnected);
     };
   }, []);

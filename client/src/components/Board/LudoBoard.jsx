@@ -131,10 +131,9 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
     const steps = [];
     if (oldPos === -1 && newPos === 0) {
       steps.push(0);
-    } else if (newPos > oldPos && newPos <= 50) {
+    } else if (newPos > oldPos && newPos <= 56) {
       for (let s = oldPos + 1; s <= newPos; s++) steps.push(s);
     } else {
-      // Home path or complex move — just snap
       steps.push(newPos);
     }
 
@@ -281,10 +280,9 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
               <div
                 key={`${t.color}-${t.tokenId}`}
                 onClick={() => isClickable && onTokenClick(t.tokenId)}
-                className={`absolute transition-all duration-500 ease-out flex items-center justify-center ${isClickable ? 'cursor-pointer z-20' : 'z-10'}`}
+                className={`absolute inset-0 transition-all duration-500 ease-out flex items-center justify-center ${isClickable ? 'cursor-pointer z-20' : 'z-10'}`}
                 style={{ 
                   transform: `translate(${off.x}px, ${off.y}px) rotate(-${boardRotation}deg)`,
-                  bottom: stacked ? '1px' : '3px',
                 }}
               >
                 <PawnToken
@@ -442,9 +440,10 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
           {quadrantLabel('yellow', 'YELLOW')}
         </div>
 
-        {/* ── CENTER star (rows 7-9, cols 7-9) ── */}
+        {/* ── CENTER star + Home Tokens (rows 7-9, cols 7-9) ── */}
         <div
           style={{ gridRow: '7 / 10', gridColumn: '7 / 10', position: 'relative' }}
+          className="overflow-visible"
         >
           <svg viewBox="0 0 90 90" className="w-full h-full absolute inset-0">
             <polygon points="0,0 45,45 0,90"   fill={QUADRANT_COLORS.red}    />
@@ -463,6 +462,45 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
               />
             </g>
           </svg>
+
+          {/* Render tokens that reached home center (pos === 56) */}
+          {['red', 'green', 'yellow', 'blue'].map(color => {
+            const tokenList = positions[color] || [];
+            const homeTokens = tokenList
+              .map((pos, tokenId) => ({ pos, tokenId }))
+              .filter(t => t.pos === 56);
+
+            if (homeTokens.length === 0) return null;
+
+            const tipPositions = {
+              red:    { top: '33.3%', left: '8%' },
+              green:  { top: '8%', left: '33.3%' },
+              yellow: { top: '33.3%', left: '58%' },
+              blue:   { top: '58%', left: '33.3%' },
+            };
+
+            const posStyle = tipPositions[color];
+
+            return (
+              <div
+                key={`home-tokens-${color}`}
+                className="absolute flex items-center justify-center pointer-events-none z-30"
+                style={{
+                  top: posStyle.top,
+                  left: posStyle.left,
+                  width: '33.3%',
+                  height: '33.3%',
+                  transform: `rotate(-${boardRotation}deg)`,
+                }}
+              >
+                {homeTokens.map((t) => (
+                  <div key={`home-${color}-${t.tokenId}`} className="absolute">
+                    <PawnToken color={color} size={15} isSmall={true} />
+                  </div>
+                ))}
+              </div>
+            );
+          })}
         </div>
 
         {/* ── TRACK CELLS ── */}
