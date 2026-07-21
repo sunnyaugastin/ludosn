@@ -148,7 +148,7 @@ export function initializeGame(playersList) {
 
 // Compute valid tokens that can move given the current rolled value
 export function getValidMoves(gameState, color, rollValue) {
-  if (!rollValue || !gameState.tokens[color]) return [];
+  if (!gameState || !rollValue || !gameState.tokens || !gameState.tokens[color]) return [];
 
   const validTokens = [];
   const playerTokens = gameState.tokens[color];
@@ -173,11 +173,12 @@ export function getValidMoves(gameState, color, rollValue) {
 
 // Advances the turn to the next eligible player
 export function advanceTurn(gameState) {
+  if (!gameState) return;
   gameState.diceValue = null;
   gameState.hasRolled = false;
   gameState.consecutiveSixes = 0;
 
-  if (gameState.gameOver) return;
+  if (gameState.gameOver || !Array.isArray(gameState.players) || gameState.players.length === 0) return;
 
   const totalPlayers = gameState.players.length;
   let nextTurn = (gameState.turn + 1) % totalPlayers;

@@ -20,6 +20,26 @@ const playerSessions = new Map(); // key: `${roomCode}:${playerName}` -> socketI
 // Load environment variables
 dotenv.config();
 
+// Top-level process crash guards
+process.on('uncaughtException', (err) => {
+  console.error('[Process Error] Uncaught Exception:', err);
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('[Process Error] Unhandled Rejection:', reason);
+});
+
+// Helper for safe socket callbacks
+function safeCallback(callback, data) {
+  if (typeof callback === 'function') {
+    try {
+      callback(data);
+    } catch (err) {
+      console.error('[Socket Callback Error]:', err);
+    }
+  }
+}
+
 const app = express();
 const port = process.env.PORT || 3000;
 const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
@@ -154,9 +174,9 @@ io.on('connection', (socket) => {
   console.log(`[Socket] User connected: ${socket.id}`);
 
   // 1. Create Room event
-  socket.on('createRoom', ({ playerName }, callback) => {
-    if (!playerName || playerName.trim() === '') {
-      return callback({ success: false, message: 'Player name is required.' });
+  socket.on('createRoom', ({ playerName } = {}, callback) => {
+    if (!playerName || typeof playerName !== 'string' || playerName.trim() === '') {
+      return safeCallback(callback, { success: false, message: 'Player name is required.' });
     }
 
     let code = generateRoomCode();
@@ -182,31 +202,31 @@ io.on('connection', (socket) => {
     socket.join(code);
 
     console.log(`[Room Created] Code: ${code} by Host: ${playerName} (${socket.id})`);
-    callback({ success: true, room });
+    safeCallback(callback, { success: true, room });
   });
 
   // 2. Join Room event
-  socket.on('joinRoom', ({ code, playerName }, callback) => {
-    if (!code || code.trim() === '') {
-      return callback({ success: false, message: 'Room code is required.' });
+  socket.on('joinRoom', ({ code, playerName } = {}, callback) => {
+    if (!code || typeof code !== 'string' || code.trim() === '') {
+      return safeCallback(callback, { success: false, message: 'Room code is required.' });
     }
-    if (!playerName || playerName.trim() === '') {
-      return callback({ success: false, message: 'Player name is required.' });
+    if (!playerName || typeof playerName !== 'string' || playerName.trim() === '') {
+      return safeCallback(callback, { success: false, message: 'Player name is required.' });
     }
 
     const roomCode = code.trim().toUpperCase();
     const room = rooms.get(roomCode);
 
     if (!room) {
-      return callback({ success: false, message: 'Room code not found.' });
+      return safeCallback(callback, { success: false, message: 'Room code not found.' });
     }
 
     if (room.state !== 'lobby') {
-      return callback({ success: false, message: 'The game has already started in this room.' });
+      return safeCallback(callback, { success: false, message: 'The game has already started in this room.' });
     }
 
     if (room.players.length >= 4) {
-      return callback({ success: false, message: 'Room is full (max 4 players).' });
+      return safeCallback(callback, { success: false, message: 'Room is full (max 4 players).' });
     }
 
     const newPlayer = {
@@ -220,7 +240,7 @@ io.on('connection', (socket) => {
     socket.join(roomCode);
 
     console.log(`[Room Joined] Code: ${roomCode}, Player: ${playerName} (${socket.id})`);
-    callback({ success: true, room });
+    safeCallback(callback, { success: true, room });
     socket.to(roomCode).emit('roomUpdated', room);
   });
 
@@ -236,7 +256,7 @@ io.on('connection', (socket) => {
   });
 
   // 3b. Select Color event (lobby only)
-  socket.on('selectColor', ({ color }, callback) => {
+  socket.on('selectColor', ({ color } = {}, callback) => {
     const validColors = ['red', 'green', 'blue', 'yellow'];
     if (!validColors.includes(color)) return;
 
@@ -249,36 +269,36 @@ io.on('connection', (socket) => {
     // Check if another player already has this color
     const colorTaken = room.players.some(p => p.id !== socket.id && p.color === color);
     if (colorTaken) {
-      if (callback) callback({ success: false, message: 'Color already taken.' });
+      safeCallback(callback, { success: false, message: 'Color already taken.' });
       return;
     }
 
     player.color = color;
     console.log(`[Color] ${player.name} selected ${color}`);
     io.to(roomCode).emit('roomUpdated', room);
-    if (callback) callback({ success: true });
+    safeCallback(callback, { success: true });
   });
 
   // 4. Start Game event
   socket.on('startGame', (callback) => {
     const lookup = findRoomByPlayerSocketId(socket.id);
     if (!lookup) {
-      return callback({ success: false, message: 'Room not found.' });
+      return safeCallback(callback, { success: false, message: 'Room not found.' });
     }
 
     const { roomCode, room, player } = lookup;
 
     if (!player.isHost) {
-      return callback({ success: false, message: 'Only the host can start the game.' });
+      return safeCallback(callback, { success: false, message: 'Only the host can start the game.' });
     }
 
     if (room.players.length < 2) {
-      return callback({ success: false, message: 'Need at least 2 players to start.' });
+      return safeCallback(callback, { success: false, message: 'Need at least 2 players to start.' });
     }
 
     const allGuestsReady = room.players.filter(p => !p.isHost).every(p => p.isReady);
     if (!allGuestsReady) {
-      return callback({ success: false, message: 'All guest players must be ready to start.' });
+      return safeCallback(callback, { success: false, message: 'All guest players must be ready to start.' });
     }
 
     // Initialize stateful game engine
@@ -292,16 +312,16 @@ io.on('connection', (socket) => {
     // Start AFK timer for the first player
     resetTurnTimer(roomCode, room);
 
-    if (callback) callback({ success: true });
+    safeCallback(callback, { success: true });
   });
 
   // 5. Reconnect Player event
-  socket.on('reconnectPlayer', ({ roomCode, playerName }, callback) => {
+  socket.on('reconnectPlayer', ({ roomCode, playerName } = {}, callback) => {
     const code = roomCode?.trim().toUpperCase();
     const room = rooms.get(code);
 
     if (!room) {
-      return callback({ success: false, message: 'Room no longer exists.' });
+      return safeCallback(callback, { success: false, message: 'Room no longer exists.' });
     }
 
     // Find a disconnected slot with matching name
@@ -310,7 +330,7 @@ io.on('connection', (socket) => {
     );
 
     if (!existingPlayer) {
-      return callback({ success: false, message: 'Player not found in room.' });
+      return safeCallback(callback, { success: false, message: 'Player not found in room.' });
     }
 
     // Swap the old socket ID with the new one
@@ -327,7 +347,7 @@ io.on('connection', (socket) => {
     console.log(`[Reconnect] ${playerName} reconnected to room ${code} (old: ${oldId}, new: ${socket.id})`);
 
     // Sync full state back to the reconnected client
-    callback({ success: true, room });
+    safeCallback(callback, { success: true, room });
     socket.to(code).emit('roomUpdated', room);
   });
 
@@ -335,14 +355,14 @@ io.on('connection', (socket) => {
   socket.on('rollDice', (callback) => {
     const lookup = findRoomByPlayerSocketId(socket.id);
     if (!lookup) {
-      return callback({ success: false, message: 'Room or player not active in game.' });
+      return safeCallback(callback, { success: false, message: 'Room or player not active in game.' });
     }
 
     const { roomCode, room } = lookup;
     const result = handleRollDice(room.gameState, socket.id);
 
     if (!result.success) {
-      return callback(result);
+      return safeCallback(callback, result);
     }
 
     // Broadcast the rolled value so clients can animate
@@ -356,6 +376,7 @@ io.on('connection', (socket) => {
     // If rolled value has no possible valid moves, auto pass turn after short visual delay
     if (result.hasNoMoves || result.turnPassed) {
       setTimeout(() => {
+        if (!room || !room.gameState || room.gameState.gameOver) return;
         advanceTurn(room.gameState);
         io.to(roomCode).emit('roomUpdated', room);
         resetTurnTimer(roomCode, room);
@@ -367,43 +388,41 @@ io.on('connection', (socket) => {
 
     // Emit full updated game data to synchronize state
     io.to(roomCode).emit('roomUpdated', room);
-    if (callback) callback({ success: true, rolled: result.rolled });
+    safeCallback(callback, { success: true, rolled: result.rolled });
   });
 
   // 7. Game Move Token event
   socket.on('moveToken', ({ tokenId }, callback) => {
     const lookup = findRoomByPlayerSocketId(socket.id);
     if (!lookup) {
-      return callback({ success: false, message: 'Room not found.' });
+      return safeCallback(callback, { success: false, message: 'Room not found.' });
     }
 
     const { roomCode, room } = lookup;
     const gameState = room.gameState;
-    const activePlayer = gameState.players[gameState.turn];
+    const activePlayer = gameState?.players?.[gameState?.turn];
     const activeColor = activePlayer?.color;
-    const oldPos = gameState.tokens[activeColor]?.[tokenId];
 
     const result = handleMoveToken(gameState, socket.id, tokenId);
 
     if (!result.success) {
-      return callback(result);
+      return safeCallback(callback, result);
     }
 
     // Detect captures: compare tokens before/after
-    // We already handle capture in engine — emit notification
-    if (result.capturedPlayer) {
+    if (result.capturedPlayer && activePlayer) {
       io.to(roomCode).emit('captureEvent', {
-        attackerName: activePlayer.name,
-        attackerColor: activeColor,
-        victimName: result.capturedPlayer.name,
-        victimColor: result.capturedPlayer.color,
+        attackerName: activePlayer.name || 'Player',
+        attackerColor: activeColor || 'red',
+        victimName: result.capturedPlayer.name || 'Opponent',
+        victimColor: result.capturedPlayer.color || 'blue',
       });
     }
 
     // Bonus turn notification
-    if (result.bonusTurn) {
+    if (result.bonusTurn && activePlayer) {
       io.to(roomCode).emit('bonusTurnEvent', {
-        playerName: activePlayer.name,
+        playerName: activePlayer.name || 'Player',
         reason: result.bonusReason || 'rolled a 6',
       });
     }
@@ -414,16 +433,16 @@ io.on('connection', (socket) => {
     // Clear and start a new turn AFK timer
     resetTurnTimer(roomCode, room);
 
-    if (callback) callback({ success: true });
+    safeCallback(callback, { success: true });
   });
 
   // 7. Chat message event
-  socket.on('sendChatMessage', ({ text }, callback) => {
+  socket.on('sendChatMessage', ({ text } = {}, callback) => {
     const lookup = findRoomByPlayerSocketId(socket.id);
     if (!lookup) return;
 
     const { roomCode, player } = lookup;
-    const trimmedText = text ? text.trim().slice(0, 150) : '';
+    const trimmedText = text ? String(text).trim().slice(0, 150) : '';
     if (trimmedText === '') return;
 
     const message = {
@@ -437,11 +456,11 @@ io.on('connection', (socket) => {
     console.log(`[Chat] Room ${roomCode} - ${player.name}: "${trimmedText}"`);
     io.to(roomCode).emit('chatMessage', message);
 
-    if (callback) callback({ success: true });
+    safeCallback(callback, { success: true });
   });
 
   // 7b. Emoji reaction event
-  socket.on('sendEmoji', ({ emoji }, callback) => {
+  socket.on('sendEmoji', ({ emoji } = {}, callback) => {
     const lookup = findRoomByPlayerSocketId(socket.id);
     if (!lookup) return;
 
@@ -451,7 +470,7 @@ io.on('connection', (socket) => {
       emoji: emoji
     });
 
-    if (callback) callback({ success: true });
+    safeCallback(callback, { success: true });
   });
 
   // 8. Handle client disconnect
@@ -486,7 +505,7 @@ io.on('connection', (socket) => {
       } else {
         // Migrate host if needed
         const hasHost = room.players.some(p => p.isHost);
-        if (!hasHost) {
+        if (!hasHost && room.players.length > 0) {
           room.players[0].isHost = true;
           console.log(`[Host Migration] New host assigned: ${room.players[0].name} in room ${roomCode}`);
         }
