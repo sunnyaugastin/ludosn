@@ -80,11 +80,18 @@ function resetTurnTimer(roomCode, room) {
     return;
   }
 
-  // Set 20-second AFK timer
+  // Set 30-second AFK timer
   const timeout = setTimeout(() => {
-    console.log(`[Timer] Room ${roomCode} turn timeout. Auto-playing.`);
     const gameState = room.gameState;
-    const activePlayer = gameState.players[gameState.turn];
+    if (!gameState || gameState.gameOver) return;
+
+    const activePlayer = gameState.players?.[gameState.turn];
+    if (!activePlayer || !activePlayer.id) {
+      console.log(`[Timer] No active player found in room ${roomCode}. Skipping.`);
+      return;
+    }
+
+    console.log(`[Timer] Room ${roomCode} turn timeout for player ${activePlayer.name}. Auto-playing.`);
 
     if (!gameState.hasRolled) {
       // Auto-roll dice
@@ -95,6 +102,7 @@ function resetTurnTimer(roomCode, room) {
         if (rollRes.hasNoMoves || rollRes.turnPassed) {
           // If roll has no valid moves or passed, auto pass after a short delay
           setTimeout(() => {
+            if (!room.gameState || room.gameState.gameOver) return;
             advanceTurn(gameState);
             io.to(roomCode).emit('roomUpdated', room);
             resetTurnTimer(roomCode, room);
@@ -102,9 +110,11 @@ function resetTurnTimer(roomCode, room) {
         } else {
           // Auto-move first valid token
           setTimeout(() => {
+            if (!room.gameState || room.gameState.gameOver) return;
             const validTokens = rollRes.validTokens || [];
-            if (validTokens.length > 0) {
-              handleMoveToken(gameState, activePlayer.id, validTokens[0]);
+            const freshActivePlayer = gameState.players?.[gameState.turn];
+            if (freshActivePlayer && freshActivePlayer.id === activePlayer.id && validTokens.length > 0) {
+              handleMoveToken(gameState, freshActivePlayer.id, validTokens[0]);
             } else {
               advanceTurn(gameState);
             }

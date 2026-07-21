@@ -188,10 +188,10 @@ export function advanceTurn(gameState) {
 
 // Server Roll Dice Trigger
 export function handleRollDice(gameState, playerId) {
-  if (gameState.gameOver) return { success: false, message: 'Game is over.' };
+  if (!gameState || gameState.gameOver) return { success: false, message: 'Game is over.' };
   
-  const activePlayer = gameState.players[gameState.turn];
-  if (activePlayer.id !== playerId) {
+  const activePlayer = gameState.players?.[gameState.turn];
+  if (!activePlayer || activePlayer.id !== playerId) {
     return { success: false, message: 'Not your turn.' };
   }
   if (gameState.hasRolled) {
@@ -229,10 +229,10 @@ export function handleRollDice(gameState, playerId) {
 
 // Server Move Token Trigger
 export function handleMoveToken(gameState, playerId, tokenId) {
-  if (gameState.gameOver) return { success: false, message: 'Game is over.' };
+  if (!gameState || gameState.gameOver) return { success: false, message: 'Game is over.' };
   
-  const activePlayer = gameState.players[gameState.turn];
-  if (activePlayer.id !== playerId) {
+  const activePlayer = gameState.players?.[gameState.turn];
+  if (!activePlayer || activePlayer.id !== playerId) {
     return { success: false, message: 'Not your turn.' };
   }
   if (!gameState.hasRolled) {
