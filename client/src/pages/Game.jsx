@@ -35,11 +35,12 @@ export default function Game({ roomData, playerName }) {
   const [rollError, setRollError] = useState('');
   const [showYourTurnFlash, setShowYourTurnFlash] = useState(false);
   const [confetti, setConfetti] = useState(false);
-  const [timerResetKey, setTimerResetKey] = useState(0);
-  const prevTurnRef = useRef(null);
-  const gameState = roomData?.gameState;
-  const [latestChatMsg, setLatestChatMsg] = useState(null);
-  const latestChatTimerRef = useRef(null);
+  const [tokenStyle, setTokenStyle] = useState(() => localStorage.getItem('ludo_token_style') || 'pawn');
+
+  const toggleTokenStyle = (style) => {
+    setTokenStyle(style);
+    localStorage.setItem('ludo_token_style', style);
+  };
 
   // Persist session for reconnect
   useEffect(() => {
@@ -365,12 +366,35 @@ export default function Game({ roomData, playerName }) {
           <h1 className="text-xl font-black text-gray-900">Ludo<span className="text-violet-600">22</span></h1>
           <p className="text-[10px] text-gray-400 font-mono">Room: {roomData.code}</p>
         </div>
-        <button
-          onClick={handleQuit}
-          className="px-4 py-2 border border-gray-200 hover:border-red-200 hover:bg-red-50 text-gray-400 hover:text-red-500 text-xs font-bold rounded-xl transition"
-        >
-          Quit
-        </button>
+
+        <div className="flex items-center gap-2">
+          {/* Token Style Selector */}
+          <div className="flex items-center bg-gray-100 p-0.5 rounded-xl border border-gray-200">
+            <button
+              onClick={() => toggleTokenStyle('pawn')}
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 ${
+                tokenStyle === 'pawn' ? 'bg-white text-violet-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <span>♟️</span> <span>Pawn</span>
+            </button>
+            <button
+              onClick={() => toggleTokenStyle('disk')}
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 ${
+                tokenStyle === 'disk' ? 'bg-white text-violet-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <span>🔘</span> <span>Disk</span>
+            </button>
+          </div>
+
+          <button
+            onClick={handleQuit}
+            className="px-4 py-2 border border-gray-200 hover:border-red-200 hover:bg-red-50 text-gray-400 hover:text-red-500 text-xs font-bold rounded-xl transition"
+          >
+            Quit
+          </button>
+        </div>
       </header>
 
       {/* Main layout */}
@@ -393,6 +417,7 @@ export default function Game({ roomData, playerName }) {
               gameState={gameState}
               validTokens={validTokens}
               onTokenClick={handleTokenClick}
+              tokenStyle={tokenStyle}
             />
           </div>
 

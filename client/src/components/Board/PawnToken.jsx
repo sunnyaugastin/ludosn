@@ -8,13 +8,41 @@ const COLOR_MAP = {
 };
 
 /**
- * PawnToken — Clean Apple 2D / Material style classic Ludo Pawn piece.
- * Flat 2D vector style with crisp solid white top circular cap for 100% contrast on all backgrounds.
+ * PawnToken — Supports 2 Token Styles:
+ * 1. 'pawn': Classic 2D Pawn with white top circular cap.
+ * 2. 'disk': Sleek Whitish-Grey circular disk with inner player color fill and white center accent.
  */
-export default function PawnToken({ color = 'red', size = 20, isClickable = false, isSmall = false }) {
+export default function PawnToken({ 
+  color = 'red', 
+  size = 20, 
+  isClickable = false, 
+  isSmall = false,
+  tokenStyle = 'pawn'
+}) {
   const { fill, dark, light, stroke } = COLOR_MAP[color] || COLOR_MAP.red;
   const s = isSmall ? size * 0.75 : size;
 
+  if (tokenStyle === 'disk') {
+    return (
+      <svg
+        width={s * 1.1}
+        height={s * 1.1}
+        viewBox="0 0 28 28"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className="transition-all duration-200"
+      >
+        {/* Outer Whitish-Grey Disc Ring */}
+        <circle cx="14" cy="14" r="13" fill="#f8fafc" stroke="#94a3b8" strokeWidth="1.5" />
+        {/* Inner Player Color Fill */}
+        <circle cx="14" cy="14" r="9.5" fill={fill} stroke={dark} strokeWidth="1.2" />
+        {/* Center White Accent Crown */}
+        <circle cx="14" cy="14" r="4.2" fill="#ffffff" stroke={dark} strokeWidth="0.8" />
+      </svg>
+    );
+  }
+
+  // Default 'pawn' style
   return (
     <svg
       width={s}

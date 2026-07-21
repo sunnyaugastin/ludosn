@@ -82,7 +82,7 @@ const HOME_PATH_BG = {
 
 /* ─── LudoBoard ─────────────────────────────────────────────────────────────── */
 
-export default function LudoBoard({ gameState, validTokens = [], onTokenClick }) {
+export default function LudoBoard({ gameState, validTokens = [], onTokenClick, tokenStyle = 'pawn' }) {
   // Animated display positions: color -> [pos0, pos1, pos2, pos3]
   const [displayPositions, setDisplayPositions] = useState(null);
   const [trailCellKey, setTrailCellKey] = useState(null);
@@ -183,7 +183,7 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
         };
       });
 
-      setTimeout(runForwardAnimation, 150);
+      setTimeout(runForwardAnimation, 230);
     };
 
     let backIdx = 0;
@@ -210,7 +210,7 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
         };
       });
 
-      setTimeout(runBackwardAnimation, 60);
+      setTimeout(runBackwardAnimation, 90);
     };
 
     runForwardAnimation();
@@ -327,7 +327,7 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
                 }}
               >
                 {/* Tightly fit spinning dashed selection ring for clickable token */}
-                {isClickable ? (
+                {isClickable && (
                   <div className="absolute inset-[-1px] pointer-events-none flex items-center justify-center z-25">
                     <svg className="w-full h-full animate-spin" viewBox="0 0 32 32" style={{ animationDuration: '3.5s' }}>
                       <circle
@@ -340,25 +340,13 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
                       />
                     </svg>
                   </div>
-                ) : isMyTurn && t.color === myColor && !animatingRef.current && (
-                  /* Inactive token ring when dice roll didn't activate this token */
-                  <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-60 z-20">
-                    <svg className="w-full h-full" viewBox="0 0 32 32">
-                      <circle
-                        cx="16" cy="16" r="14"
-                        fill="none"
-                        stroke="#94a3b8"
-                        strokeWidth="1.2"
-                        strokeDasharray="3 3"
-                      />
-                    </svg>
-                  </div>
                 )}
                 <PawnToken
                   color={t.color}
                   size={stacked ? 14 : 20}
                   isClickable={isClickable}
                   isSmall={stacked}
+                  tokenStyle={tokenStyle}
                 />
               </div>
             );
@@ -418,7 +406,6 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
         >
           {tokenHere !== null && (() => {
             const isClickable = isMyTurn && color === myColor && validTokens.includes(tokenHere);
-            const isInactiveOnTurn = isMyTurn && color === myColor && !isClickable && !animatingRef.current;
             return (
               <div
                 onClick={() => isClickable && onTokenClick(tokenHere)}
@@ -440,21 +427,7 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
                     </svg>
                   </div>
                 )}
-                {/* Inactive ring for locked base tokens on your turn */}
-                {isInactiveOnTurn && (
-                  <div className="absolute inset-[-2px] pointer-events-none flex items-center justify-center opacity-60 z-20">
-                    <svg className="w-full h-full" viewBox="0 0 32 32">
-                      <circle
-                        cx="16" cy="16" r="14"
-                        fill="none"
-                        stroke="#94a3b8"
-                        strokeWidth="1.2"
-                        strokeDasharray="3 3"
-                      />
-                    </svg>
-                  </div>
-                )}
-                <PawnToken color={color} size={15} isClickable={isClickable} />
+                <PawnToken color={color} size={15} isClickable={isClickable} tokenStyle={tokenStyle} />
               </div>
             );
           })()}
@@ -598,7 +571,7 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
               >
                 {homeTokens.map((t) => (
                   <div key={`home-${color}-${t.tokenId}`} className="absolute">
-                    <PawnToken color={color} size={15} isSmall={true} />
+                    <PawnToken color={color} size={15} isSmall={true} tokenStyle={tokenStyle} />
                   </div>
                 ))}
               </div>
