@@ -289,7 +289,7 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
               >
                 <PawnToken
                   color={t.color}
-                  size={stacked ? 20 : 26}
+                  size={stacked ? 14 : 20}
                   isClickable={isClickable}
                   isSmall={stacked}
                 />
@@ -353,7 +353,7 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
                 className={`flex items-center justify-center ${isClickable ? 'cursor-pointer' : ''}`}
                 style={{ transform: `rotate(-${boardRotation}deg)` }}
               >
-                <PawnToken color={color} size={22} isClickable={isClickable} />
+                <PawnToken color={color} size={15} isClickable={isClickable} />
               </div>
             );
           })()}

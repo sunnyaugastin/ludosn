@@ -8,74 +8,74 @@ const COLOR_MAP = {
 };
 
 /**
- * PawnToken — Clean Apple 2D / Material style classic Ludo Pawn piece.
- * Thicker base, recognizable pawn silhouette, flat 2D style with crisp vector highlights.
+ * PawnToken — Sleek Apple 2D / Material style classic Ludo Pawn piece.
+ * Proportioned to fit perfectly inside Ludo board cells on mobile and desktop without cell border overlap.
  */
-export default function PawnToken({ color = 'red', size = 28, isClickable = false, isSmall = false }) {
+export default function PawnToken({ color = 'red', size = 20, isClickable = false, isSmall = false }) {
   const { fill, dark, light, stroke } = COLOR_MAP[color] || COLOR_MAP.red;
   const s = isSmall ? size * 0.75 : size;
 
   return (
     <svg
       width={s}
-      height={s * 1.3}
-      viewBox="0 0 36 46"
+      height={s * 1.286}
+      viewBox="0 0 28 36"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={`transition-all duration-200 ${isClickable ? 'animate-bounce cursor-pointer' : ''}`}
       style={{
         filter: isClickable
-          ? `drop-shadow(0 0 7px ${fill}cc) drop-shadow(0 4px 6px rgba(0,0,0,0.25))`
-          : 'drop-shadow(0 3px 5px rgba(0,0,0,0.18))',
+          ? `drop-shadow(0 0 6px ${fill}cc) drop-shadow(0 3px 5px rgba(0,0,0,0.22))`
+          : 'drop-shadow(0 2px 4px rgba(0,0,0,0.18))',
       }}
     >
       {/* ── Base Pedestal (Thick Rounded Base) ── */}
-      <ellipse cx="18" cy="39" rx="14" ry="5" fill={dark} />
-      <ellipse cx="18" cy="37.5" rx="14" ry="5" fill={fill} stroke={stroke} strokeWidth="1.2" />
-      <ellipse cx="18" cy="36.5" rx="10" ry="3.2" fill={light} opacity="0.35" />
+      <ellipse cx="14" cy="31.5" rx="9" ry="3.2" fill={dark} />
+      <ellipse cx="14" cy="30" rx="9" ry="3.2" fill={fill} stroke={stroke} strokeWidth="1" />
+      <ellipse cx="14" cy="29.2" rx="6.5" ry="2" fill={light} opacity="0.35" />
 
       {/* ── Main Flared Body ── */}
       <path
-        d="M 6 37.5 C 7.5 27 12.5 22 13.5 16 L 22.5 16 C 23.5 22 28.5 27 30 37.5 Z"
+        d="M 5 30 C 6 22 9.5 18 10.5 13.5 L 17.5 13.5 C 18.5 18 22 22 23 30 Z"
         fill={fill}
         stroke={stroke}
-        strokeWidth="1.2"
+        strokeWidth="1"
         strokeLinejoin="round"
       />
       {/* 2D Vector Shade on right side of body */}
       <path
-        d="M 18 16 C 19 22 24 27 30 37.5 C 28.5 27 23.5 22 22.5 16 Z"
+        d="M 14 13.5 C 15 18 19 22 23 30 C 22 22 18.5 18 17.5 13.5 Z"
         fill={dark}
         opacity="0.22"
       />
 
       {/* ── Collar Ring ── */}
-      <ellipse cx="18" cy="16" rx="5.5" ry="2" fill={dark} />
-      <ellipse cx="18" cy="15" rx="5.5" ry="2" fill={fill} stroke={stroke} strokeWidth="1.2" />
+      <ellipse cx="14" cy="13.5" rx="4.2" ry="1.5" fill={dark} />
+      <ellipse cx="14" cy="12.7" rx="4.2" ry="1.5" fill={fill} stroke={stroke} strokeWidth="1" />
 
       {/* ── Head Knob (Sphere) ── */}
-      <circle cx="18" cy="9.5" r="7.5" fill={fill} stroke={stroke} strokeWidth="1.2" />
+      <circle cx="14" cy="7.8" r="5.8" fill={fill} stroke={stroke} strokeWidth="1" />
 
       {/* 2D Apple/Material Vector Highlights */}
       {/* Top-left head arc highlight */}
       <path
-        d="M 13.5 7.5 A 5 5 0 0 1 20.5 4.5"
+        d="M 10.5 6 A 4 4 0 0 1 16 3.6"
         stroke="#ffffff"
-        strokeWidth="1.8"
+        strokeWidth="1.4"
         strokeLinecap="round"
-        opacity="0.75"
+        opacity="0.8"
       />
       {/* Head right shade */}
       <path
-        d="M 18 2 A 7.5 7.5 0 0 1 25.5 9.5 A 7.5 7.5 0 0 0 18 2 Z"
+        d="M 14 2 A 5.8 5.8 0 0 1 19.8 7.8 A 5.8 5.8 0 0 0 14 2 Z"
         fill={dark}
         opacity="0.2"
       />
       {/* Body left highlight stroke */}
       <path
-        d="M 9 34 C 10 27 13.5 22 14.5 17"
+        d="M 7.5 27 C 8.2 21.5 10.5 18 11.2 14.5"
         stroke="#ffffff"
-        strokeWidth="1.2"
+        strokeWidth="1"
         strokeLinecap="round"
         opacity="0.45"
       />
