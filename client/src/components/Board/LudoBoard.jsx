@@ -43,18 +43,20 @@ const BASES = {
 const SAFE_TRACK_POSITIONS = [0, 8, 13, 21, 26, 34, 39, 47];
 
 function getCoords(color, tokenId, pos) {
-  if (pos === -1) return BASES[color][tokenId];
+  if (!color || !BASES[color] || !HOME_PATHS[color] || START_OFFSETS[color] === undefined) {
+    return [0, 0];
+  }
+  if (pos === -1) return BASES[color][tokenId] || [0, 0];
   if (pos === 56) {
-    // Center of the board - arrange by token id
     const centers = { red:[7,6], green:[6,7], yellow:[7,8], blue:[8,7] };
-    return centers[color];
+    return centers[color] || [7, 7];
   }
   if (pos >= 51 && pos <= 55) {
-    return HOME_PATHS[color][pos - 51];
+    return HOME_PATHS[color][pos - 51] || [0, 0];
   }
   if (pos >= 0 && pos <= 50) {
     const idx = (START_OFFSETS[color] + pos) % 52;
-    return TRACK[idx];
+    return TRACK[idx] || [0, 0];
   }
   return [0, 0];
 }
@@ -196,14 +198,22 @@ export default function LudoBoard({ gameState, validTokens = [], onTokenClick })
 
   /* Build cell → tokens map */
   const cellMap = {};
-  Object.keys(positions).forEach(color => {
-    positions[color].forEach((pos, tokenId) => {
-      const [r, c] = getCoords(color, tokenId, pos);
-      const key = `${r},${c}`;
-      if (!cellMap[key]) cellMap[key] = [];
-      cellMap[key].push({ color, tokenId, pos, r, c });
+  if (positions) {
+    Object.keys(positions).forEach(color => {
+      const tokenList = positions[color];
+      if (Array.isArray(tokenList)) {
+        tokenList.forEach((pos, tokenId) => {
+          const coords = getCoords(color, tokenId, pos);
+          if (Array.isArray(coords)) {
+            const [r, c] = coords;
+            const key = `${r},${c}`;
+            if (!cellMap[key]) cellMap[key] = [];
+            cellMap[key].push({ color, tokenId, pos, r, c });
+          }
+        });
+      }
     });
-  });
+  }
 
   /* ── Cell rendering ── */
   const renderCell = (r, c) => {
